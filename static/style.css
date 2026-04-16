@@ -1,11 +1,35 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+/* FILE: static/style.css */
+/* Global overrides and print styles.                        */
+/* Core styles live in index.html for single-file portability */
+
+/* ── Print ───────────────────────────────────────────────── */
+@media print {
+  .topbar, .refresh-bar { display: none; }
+  body { background: #fff; color: #000; }
 }
 
-body {
-    font-family: sans-serif;
-    background: #f5f5f5;
-    color: #333;
+/* ── iPhone Safari Fixes ─────────────────────────────────── */
+@supports (-webkit-touch-callout: none) {
+  body {
+    /* Prevent font inflation on iOS */
+    -webkit-text-size-adjust: 100%;
+  }
+  .topbar {
+    /* Account for iPhone notch */
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+  }
+  .terminal {
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+  }
 }
+
+/* ── Scrollbar (Chrome/Safari) ───────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #2a2a2a; }
+
+/* ── Selection ───────────────────────────────────────────── */
+::selection { background: rgba(245,158,11,0.25); color: #fff; }
