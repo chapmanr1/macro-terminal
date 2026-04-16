@@ -130,6 +130,6 @@ if __name__ == "__main__":
     ka_thread = threading.Thread(target=internal_keepalive, daemon=True)
     ka_thread.start()
 
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8080))
     log.info(f"Starting Macro Terminal on port {port}")
     app.run(host="0.0.0.0", port=port, debug=False)
