@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Flask App</title>
+    <title>Regime Engine</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Python Flask App</h1>
-        <p>Connected to PostgreSQL database.</p>
-        <a href="/api/examples">View API</a>
-    </div>
+    <div id="app"></div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
