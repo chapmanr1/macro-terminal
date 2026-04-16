@@ -1,0 +1,10 @@
+flask
+psycopg2-binary
+sqlalchemy
+flask-sqlalchemy
+python-dotenv
+flask
+flask-sqlalchemy
+psycopg2-binary
+python-dotenv
+sqlalchemy
