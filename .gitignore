@@ -1,0 +1,8 @@
+.cache/
+.local/
+.pythonlibs/
+.upm/
+__pycache__/
+*.pyc
+.env
+.thresholds.json

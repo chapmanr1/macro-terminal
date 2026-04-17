@@ -1,23 +1,21 @@
 # FILE: news_feed.py
-# Bloomberg Macro Terminal — News Feed Module
-# Fetches, filters, scores, and caches financial headlines from NewsAPI.
-# Route: /api/news (registered in main.py)
+# Bloomberg Macro Terminal — RSS News Feed
+# Real-time headlines from free RSS feeds.
+# Fixed: date parsing and chronological sorting.
 
-import os
 import time
 import logging
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
+from xml.etree import ElementTree as ET
+from email.utils import parsedate_to_datetime
 
 log = logging.getLogger(__name__)
 
 # ── CONFIG ────────────────────────────────────────────────────
-NEWS_API_KEY  = os.environ.get("NEWS_API_KEY", "")
-NEWS_BASE     = "https://newsapi.org/v2/everything"
-NEWS_TOP      = "https://newsapi.org/v2/top-headlines"
-CACHE_TTL     = 900   # 15 minutes in seconds
-MAX_ARTICLES  = 20    # maximum articles returned to frontend
-REQUEST_TIMEOUT = 12  # seconds
+CACHE_TTL       = 900
+MAX_ARTICLES    = 20
+REQUEST_TIMEOUT = 10
 
 # ── CACHE ─────────────────────────────────────────────────────
 _cache = {"data": None, "ts": 0}
@@ -32,142 +30,234 @@ def _set_cache(data):
     _cache["data"] = data
     _cache["ts"]   = time.time()
 
-# ── SEARCH QUERIES ────────────────────────────────────────────
-# Multiple targeted queries ensure broad macro coverage.
-# NewsAPI free tier: 100 requests/day — we batch efficiently.
-
-SEARCH_QUERIES = [
-    # Monetary policy
-    'Federal Reserve OR "Fed rate" OR FOMC OR "interest rates" OR Powell',
-    # Inflation
-    'inflation OR CPI OR PCE OR "consumer prices" OR stagflation',
-    # Growth & recession
-    'recession OR GDP OR "economic growth" OR "economic slowdown",',
-    # Credit & financial stress
-    '"private credit" OR "credit spreads" OR "high yield" OR "financial conditions"',
-    # Treasury & yields
-    '"Treasury yields" OR "yield curve" OR "bond market" OR "10-year yield"',
+# ── RSS FEEDS ─────────────────────────────────────────────────
+RSS_FEEDS = [
+    {
+        "url":    "https://feeds.reuters.com/reuters/businessNews",
+        "source": "Reuters",
+    },
+    {
+        "url":    "https://feeds.reuters.com/reuters/topNews",
+        "source": "Reuters",
+    },
+    {
+        "url":    "https://www.marketwatch.com/rss/topstories",
+        "source": "MarketWatch",
+    },
+    {
+        "url":    "https://www.marketwatch.com/rss/economy",
+        "source": "MarketWatch",
+    },
+    {
+        "url":    "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",
+        "source": "WSJ",
+    },
+    {
+        "url":    "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml",
+        "source": "WSJ",
+    },
+    {
+        "url":    "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
+        "source": "CNBC",
+    },
+    {
+        "url":    "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258",
+        "source": "CNBC Economy",
+    },
+    {
+        "url":    "https://www.ft.com/rss/home",
+        "source": "Financial Times",
+    },
 ]
 
-# Top-headlines business query as a fallback / supplement
-TOP_HEADLINES_PARAMS = {
-    "category": "business",
-    "language": "en",
-    "pageSize": 20,
-}
-
-# ── RELEVANCE SCORING ─────────────────────────────────────────
-# Keywords scored by macro relevance weight.
-# Higher score = surfaces higher in the feed.
-
+# ── RELEVANCE KEYWORDS ────────────────────────────────────────
 KEYWORD_SCORES = {
-    # Tier 1 — highest macro signal
-    "federal reserve":    10,
-    "fed rate":           10,
-    "fomc":               10,
-    "stagflation":        10,
-    "yield curve":        9,
-    "recession":          9,
-    "inflation":          8,
-    "cpi":                8,
-    "pce":                8,
-    "powell":             8,
-    "rate hike":          8,
-    "rate cut":           8,
-    "quantitative":       7,
-    "treasury yield":     7,
-    "10-year":            7,
-    "credit spreads":     7,
-    "private credit":     7,
-    # Tier 2 — relevant macro
-    "gdp":                6,
-    "unemployment":       6,
-    "labor market":       6,
-    "jobs report":        6,
-    "nonfarm":            6,
-    "tariff":             6,
-    "trade war":          6,
-    "debt ceiling":       6,
-    "bank":               5,
-    "lending":            5,
-    "mortgage":           5,
-    "housing":            5,
-    "consumer":           5,
-    "spending":           4,
-    "earnings":           4,
-    "deficit":            5,
-    "fiscal":             5,
-    "economic":           4,
-    "market":             3,
-    "stocks":             2,
-    "s&p":                2,
-    "nasdaq":             2,
-    # Tier 3 — general finance
-    "wall street":        2,
-    "investment":         2,
-    "financial":          2,
+    "federal reserve":  10,
+    "fed rate":         10,
+    "fomc":             10,
+    "stagflation":      10,
+    "yield curve":       9,
+    "recession":         9,
+    "inflation":         8,
+    "cpi":               8,
+    "pce":               8,
+    "powell":            8,
+    "rate hike":         8,
+    "rate cut":          8,
+    "treasury":          7,
+    "10-year":           7,
+    "credit":            7,
+    "tariff":            7,
+    "trade":             6,
+    "gdp":               6,
+    "unemployment":      6,
+    "jobs":              6,
+    "nonfarm":           6,
+    "payroll":           6,
+    "debt":              5,
+    "deficit":           5,
+    "fiscal":            5,
+    "bank":              5,
+    "lending":           5,
+    "mortgage":          5,
+    "housing":           5,
+    "economic":          4,
+    "market":            3,
+    "stocks":            2,
+    "s&p":               2,
+    "nasdaq":            2,
+    "wall street":       2,
+    "financial":         2,
 }
 
-# ── NOISE FILTERS ─────────────────────────────────────────────
-# Articles containing these terms are deprioritized or excluded.
 NOISE_TERMS = [
-    "cryptocurrency", "bitcoin", "crypto", "nft", "meme stock",
-    "celebrity", "sports", "entertainment", "gaming", "cannabis",
-    "lawsuit", "scandal", "obituary", "weather",
+    "cryptocurrency", "bitcoin", "crypto", "nft",
+    "celebrity", "sports", "entertainment", "gaming",
+    "cannabis", "obituary", "weather", "horoscope",
 ]
 
-# Minimum relevance score to include an article
-MIN_RELEVANCE_SCORE = 3
+MIN_SCORE = 2
 
-# ── SOURCES TO PRIORITIZE ─────────────────────────────────────
-PREFERRED_SOURCES = {
-    "reuters":                  5,
-    "bloomberg":                5,
-    "financial times":          5,
-    "wall street journal":      5,
-    "wsj":                      5,
-    "the economist":            4,
-    "ft":                       4,
-    "cnbc":                     3,
-    "marketwatch":              3,
-    "barron's":                 3,
-    "seeking alpha":            2,
-    "yahoo finance":            2,
-    "business insider":         2,
-    "associated press":         3,
-    "ap":                       3,
-    "axios":                    3,
-    "politico":                 2,
-}
+# ── DATE PARSER ───────────────────────────────────────────────
+def _parse_date(pub_date):
+    """
+    Robustly parse any RSS date format.
+    Returns (iso_string, datetime_object) tuple.
+    Falls back to now if unparseable.
+    """
+    now = datetime.now(timezone.utc)
 
-# ── SCORING ENGINE ────────────────────────────────────────────
+    if not pub_date or not pub_date.strip():
+        return now.strftime("%Y-%m-%dT%H:%M:%SZ"), now
+
+    pub_date = pub_date.strip()
+
+    # Method 1 — email.utils handles all RFC 2822 formats
+    # This covers 99% of RSS feeds correctly
+    try:
+        dt = parsedate_to_datetime(pub_date)
+        dt = dt.astimezone(timezone.utc)
+        return dt.strftime("%Y-%m-%dT%H:%M:%SZ"), dt
+    except Exception:
+        pass
+
+    # Method 2 — ISO 8601 variants
+    iso_formats = [
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%M:%S.%fZ",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+    ]
+    for fmt in iso_formats:
+        try:
+            dt = datetime.strptime(pub_date, fmt)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            dt = dt.astimezone(timezone.utc)
+            return dt.strftime("%Y-%m-%dT%H:%M:%SZ"), dt
+        except ValueError:
+            continue
+
+    # Fallback — use now but log it
+    log.warning(f"Could not parse date: '{pub_date}' — using now")
+    return now.strftime("%Y-%m-%dT%H:%M:%SZ"), now
+
+
+def _fmt_rel_time(dt):
+    """
+    Format datetime as relative time string.
+    Returns e.g. '5MIN AGO', '2HR AGO', 'JUST NOW'
+    """
+    if dt is None:
+        return "--"
+    now  = datetime.now(timezone.utc)
+    diff = int((now - dt).total_seconds())
+
+    if diff < 0:
+        return "JUST NOW"
+    if diff < 60:
+        return "JUST NOW"
+    if diff < 3600:
+        mins = diff // 60
+        return f"{mins}MIN AGO"
+    if diff < 86400:
+        hrs = diff // 3600
+        return f"{hrs}HR AGO"
+
+    days = diff // 86400
+    return f"{days}D AGO"
+
+
+# ── RSS PARSER ────────────────────────────────────────────────
+def _fetch_rss(feed):
+    """Fetch and parse a single RSS feed."""
+    headers = {
+        "User-Agent": "Mozilla/5.0 MacroTerminal/1.0",
+        "Accept":     "application/rss+xml, application/xml, text/xml",
+    }
+
+    resp = requests.get(feed["url"], headers=headers, timeout=REQUEST_TIMEOUT)
+    resp.raise_for_status()
+
+    root    = ET.fromstring(resp.content)
+    channel = root.find("channel")
+    if channel is None:
+        channel = root
+
+    articles = []
+    for item in channel.findall("item"):
+        title    = item.findtext("title", "").strip()
+        url      = item.findtext("link", "").strip()
+        pub_date = item.findtext("pubDate", "").strip()
+        desc     = item.findtext("description", "").strip()
+
+        # Some feeds use atom:updated or dc:date
+        if not pub_date:
+            for tag in [
+                "{http://purl.org/dc/elements/1.1/}date",
+                "{http://www.w3.org/2005/Atom}updated",
+                "{http://www.w3.org/2005/Atom}published",
+            ]:
+                val = item.findtext(tag, "").strip()
+                if val:
+                    pub_date = val
+                    break
+
+        if not title or not url:
+            continue
+
+        iso_ts, dt_obj = _parse_date(pub_date)
+        rel_time       = _fmt_rel_time(dt_obj)
+
+        articles.append({
+            "title":       title,
+            "headline":    title,
+            "description": desc[:200] if desc else "",
+            "source":      feed["source"],
+            "url":         url,
+            "publishedAt": iso_ts,
+            "timestamp":   iso_ts,
+            "relTime":     rel_time,
+            "dt":          dt_obj,  # keep for sorting, removed before response
+        })
+
+    return articles
+
+
+# ── SCORING ───────────────────────────────────────────────────
 def _score_article(article):
-    """
-    Score an article's macro relevance on 0–100 scale.
-    Combines keyword matching in title + description,
-    source quality bonus, and noise penalty.
-    """
     title = (article.get("title") or "").lower()
     desc  = (article.get("description") or "").lower()
-    src   = (article.get("source", {}).get("name") or "").lower()
     text  = title + " " + desc
-
     score = 0
 
-    # Keyword scoring — title weighted 2x vs description
     for keyword, weight in KEYWORD_SCORES.items():
         if keyword in title:
             score += weight * 2
         elif keyword in desc:
             score += weight
 
-    # Source quality bonus
-    for source_name, bonus in PREFERRED_SOURCES.items():
-        if source_name in src:
-            score += bonus
-            break
-
-    # Noise penalty
     for noise in NOISE_TERMS:
         if noise in text:
             score -= 15
@@ -175,202 +265,99 @@ def _score_article(article):
     return max(0, score)
 
 def _is_valid(article):
-    """Basic validity checks — must have title, url, and publishedAt."""
     return (
         article.get("title") and
         article.get("url") and
-        article.get("publishedAt") and
-        article.get("title") != "[Removed]" and
-        article.get("source", {}).get("name") != "[Removed]"
+        article.get("title") != "[Removed]"
     )
 
-def _clean_article(article, score):
-    """Normalize article to frontend contract."""
-    raw_ts = article.get("publishedAt", "")
-    # Normalize ISO timestamp
-    try:
-        dt = datetime.strptime(raw_ts, "%Y-%m-%dT%H:%M:%SZ")
-        ts = dt.isoformat()
-    except Exception:
-        ts = raw_ts
-
-    return {
-        "title":       (article.get("title") or "").strip(),
-        "headline":    (article.get("title") or "").strip(),  # alias
-        "description": (article.get("description") or "").strip()[:200],
-        "source":      article.get("source", {}).get("name", "UNKNOWN"),
-        "url":         article.get("url", ""),
-        "publishedAt": ts,
-        "timestamp":   ts,  # alias for frontend compatibility
-        "score":       score,
-        "imageUrl":    article.get("urlToImage"),
-    }
-
-# ── DEDUPLICATION ─────────────────────────────────────────────
 def _deduplicate(articles):
-    """Remove articles with near-duplicate titles."""
     seen   = set()
     unique = []
     for a in articles:
-        # Use first 60 chars of title as fingerprint
         key = a["title"][:60].lower().strip()
         if key not in seen:
             seen.add(key)
             unique.append(a)
     return unique
 
-# ── NEWSAPI FETCH ─────────────────────────────────────────────
-def _fetch_everything(query):
-    """
-    Fetch articles from NewsAPI /everything endpoint.
-    Uses date range of last 48 hours for recency.
-    """
-    if not NEWS_API_KEY:
-        raise ValueError("NEWS_API_KEY not configured in Replit Secrets.")
 
-    from_date = (datetime.utcnow() - timedelta(hours=48)).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    params = {
-        "q":          query,
-        "apiKey":     NEWS_API_KEY,
-        "language":   "en",
-        "sortBy":     "publishedAt",
-        "pageSize":   10,
-        "from":       from_date,
-    }
-
-    resp = requests.get(NEWS_BASE, params=params, timeout=REQUEST_TIMEOUT)
-    resp.raise_for_status()
-    data = resp.json()
-
-    if data.get("status") != "ok":
-        raise ValueError(f"NewsAPI error: {data.get('message', 'unknown')}")
-
-    return data.get("articles", [])
-
-def _fetch_top_headlines():
-    """
-    Fetch top business headlines as supplementary feed.
-    More reliable on free tier than /everything for some queries.
-    """
-    if not NEWS_API_KEY:
-        return []
-
-    params = {**TOP_HEADLINES_PARAMS, "apiKey": NEWS_API_KEY}
-
-    try:
-        resp = requests.get(NEWS_TOP, params=params, timeout=REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        data = resp.json()
-        if data.get("status") == "ok":
-            return data.get("articles", [])
-    except Exception as e:
-        log.warning(f"Top headlines fetch failed: {e}")
-
-    return []
-
-# ── FALLBACK DATA ─────────────────────────────────────────────
-def _fallback_response(error_msg=""):
-    """
-    Return a safe fallback when NewsAPI is unavailable.
-    Includes a single placeholder article so the frontend
-    renders the section rather than showing a blank error.
-    """
-    ts = datetime.utcnow().isoformat()
+# ── FALLBACK ──────────────────────────────────────────────────
+def _fallback(error=""):
+    ts  = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = datetime.now(timezone.utc)
     return {
-        "articles":  [
-            {
-                "title":       "NEWS FEED TEMPORARILY UNAVAILABLE",
-                "headline":    "NEWS FEED TEMPORARILY UNAVAILABLE",
-                "description": "NewsAPI connection failed. Data will refresh automatically.",
-                "source":      "SYSTEM",
-                "url":         "#",
-                "publishedAt": ts,
-                "timestamp":   ts,
-                "score":       0,
-                "imageUrl":    None,
-            }
-        ],
+        "articles": [{
+            "title":       "NEWS FEED TEMPORARILY UNAVAILABLE",
+            "headline":    "NEWS FEED TEMPORARILY UNAVAILABLE",
+            "description": "RSS feeds could not be reached. Will retry shortly.",
+            "source":      "SYSTEM",
+            "url":         "#",
+            "publishedAt": ts,
+            "timestamp":   ts,
+            "relTime":     "JUST NOW",
+            "score":       0,
+        }],
         "count":     0,
         "timestamp": ts,
         "cached":    False,
-        "error":     error_msg,
+        "error":     error,
         "status":    "fallback",
     }
+
 
 # ── MAIN ENTRY POINT ──────────────────────────────────────────
 def get_news():
     """
-    Primary function called by main.py /api/news route.
-    Fetches, scores, deduplicates, and returns top macro headlines.
-    Caches for CACHE_TTL seconds (15 minutes).
-
-    Returns:
-    {
-      articles: [{ title, headline, description, source,
-                   url, publishedAt, timestamp, score }],
-      count: int,
-      timestamp: ISO string,
-      cached: bool,
-      error: str | None,
-      status: "ok" | "partial" | "fallback"
-    }
+    Fetch real-time macro headlines from free RSS feeds.
+    Sorted by recency. Relative timestamps accurate.
     """
     if _cache_valid():
-        log.info("News: returning cached data.")
+        log.info("News: returning cached RSS data.")
         cached = dict(_cache["data"])
         cached["cached"] = True
         return cached
 
-    log.info("News: fetching fresh headlines...")
-    ts       = datetime.utcnow().isoformat()
-    raw      = []
-    errors   = []
+    log.info("News: fetching fresh RSS feeds...")
+    ts     = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    raw    = []
+    errors = []
 
-    # ── Primary: targeted macro queries ───────────────────────
-    # NewsAPI free tier: 100 req/day.
-    # We use 2 queries (not all 5) to stay well within limits.
-    # Rotate which queries we use based on time to vary coverage.
-    hour = datetime.utcnow().hour
-    q_indices = [hour % len(SEARCH_QUERIES),
-                 (hour + 2) % len(SEARCH_QUERIES)]
-    active_queries = [SEARCH_QUERIES[i] for i in set(q_indices)]
-
-    for query in active_queries:
+    for feed in RSS_FEEDS:
         try:
-            articles = _fetch_everything(query)
+            articles = _fetch_rss(feed)
             raw.extend(articles)
-            log.info(f"News: fetched {len(articles)} from query '{query[:40]}...'")
+            log.info(f"News: {len(articles)} from {feed['source']}")
         except Exception as e:
-            log.warning(f"News query failed: {e}")
-            errors.append(str(e)[:80])
+            log.warning(f"RSS failed [{feed['source']}]: {e}")
+            errors.append(f"{feed['source']}: {str(e)[:60]}")
 
-    # ── Supplement: top business headlines ────────────────────
-    try:
-        top = _fetch_top_headlines()
-        raw.extend(top)
-        log.info(f"News: fetched {len(top)} top headlines.")
-    except Exception as e:
-        log.warning(f"Top headlines failed: {e}")
-        errors.append(str(e)[:80])
-
-    # ── Nothing came back at all ───────────────────────────────
     if not raw:
-        error_msg = "; ".join(errors) if errors else "No articles returned."
+        error_msg = "; ".join(errors) if errors else "All RSS feeds failed."
         log.error(f"News: complete failure — {error_msg}")
-        result = _fallback_response(error_msg)
-        # Still cache the fallback to prevent hammering the API
+        result = _fallback(error_msg)
         _set_cache(result)
         return result
 
-    # ── Filter, score, sort ────────────────────────────────────
-    valid    = [a for a in raw if _is_valid(a)]
-    scored   = [(a, _score_article(a)) for a in valid]
-    filtered = [(a, s) for a, s in scored if s >= MIN_RELEVANCE_SCORE]
-    sorted_  = sorted(filtered, key=lambda x: x[1], reverse=True)
-    cleaned  = [_clean_article(a, s) for a, s in sorted_]
-    unique   = _deduplicate(cleaned)
-    final    = unique[:MAX_ARTICLES]
+    # Filter valid articles
+    valid = [a for a in raw if _is_valid(a)]
+
+    # Score for relevance
+    scored = [(a, _score_article(a)) for a in valid]
+    filtered = [(a, s) for a, s in scored if s >= MIN_SCORE]
+
+    # Sort by recency first — most recent at top
+    filtered.sort(key=lambda x: x[0].get("dt") or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+
+    # Add score, remove dt object before sending to frontend
+    cleaned = []
+    for a, s in filtered:
+        article = {k: v for k, v in a.items() if k != "dt"}
+        article["score"] = s
+        cleaned.append(article)
+
+    unique = _deduplicate(cleaned)
+    final  = unique[:MAX_ARTICLES]
 
     status = "ok" if not errors else "partial"
 
@@ -384,13 +371,17 @@ def get_news():
     }
 
     _set_cache(result)
-    log.info(f"News: returning {len(final)} articles, status={status}.")
+    log.info(f"News: {len(final)} articles, status={status}.")
     return result
 
 
 # ── STANDALONE TEST ───────────────────────────────────────────
 if __name__ == "__main__":
     import json
-    # export NEWS_API_KEY=your_key before running directly
     result = get_news()
-    print(json.dumps(result, indent=2))
+    # Remove dt objects for clean print
+    print(json.dumps(
+        {k: v for k, v in result.items()},
+        indent=2,
+        default=str
+    ))

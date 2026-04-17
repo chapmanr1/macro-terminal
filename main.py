@@ -8,11 +8,6 @@ import logging
 from flask import Flask, jsonify, render_template
 from datetime import datetime
 
-# ── Import modules (created separately) ───────────────────────
-# These will be created when you add regime_engine.py,
-# fred_data.py, and news_feed.py to your Replit project.
-# The app handles missing modules gracefully.
-
 try:
     from regime_engine import get_regime
 except ImportError:
@@ -22,83 +17,117 @@ except ImportError:
                 "asset_class_positioning": [], "timestamp": datetime.utcnow().isoformat()}
 
 try:
-    from fred_data import get_macro, get_yields
+    from fred_data import get_macro, get_yields, get_economy, get_credit, get_economic_calendar
 except ImportError:
     def get_macro():
-        return {"series": [], "timestamp": datetime.utcnow().isoformat(),
-                "error": "FRED module not loaded"}
+        return {"series": [], "timestamp": datetime.utcnow().isoformat(), "error": "FRED module not loaded"}
     def get_yields():
-        return {"yields": [], "spreads": [], "timestamp": datetime.utcnow().isoformat(),
-                "error": "FRED module not loaded"}
+        return {"yields": [], "spreads": [], "timestamp": datetime.utcnow().isoformat(), "error": "FRED module not loaded"}
+    def get_economy():
+        return {"growth": [], "inflation": [], "labor": [], "consumer": [],
+                "timestamp": datetime.utcnow().isoformat(), "error": "Economy module not loaded"}
+    def get_credit():
+        return {"spreads": [], "breakevens": [], "real_yields": [], "falsification_triggers": [],
+                "timestamp": datetime.utcnow().isoformat(), "error": "Credit module not loaded"}
+    def get_economic_calendar():
+        return []
 
 try:
     from news_feed import get_news
 except ImportError:
     def get_news():
-        return {"articles": [], "timestamp": datetime.utcnow().isoformat(),
-                "error": "News module not loaded"}
+        return {"articles": [], "timestamp": datetime.utcnow().isoformat(), "error": "News module not loaded"}
 
-# ── App Setup ──────────────────────────────────────────────────
+try:
+    from market_data import get_market
+except ImportError:
+    def get_market():
+        return {"indices": [], "futures": [], "sectors": [], "commodities": [], "currencies": [],
+                "timestamp": datetime.utcnow().isoformat(), "error": "Market module not loaded"}
+
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-# ── Routes ────────────────────────────────────────────────────
+# ── ROUTES ────────────────────────────────────────────────────
 @app.route("/")
 def index():
     return render_template("index.html")
 
 @app.route("/ping")
 def ping():
-    """Keep-alive endpoint — pinged by UptimeRobot."""
     return jsonify({"status": "ok", "ts": datetime.utcnow().isoformat()})
 
 @app.route("/api/regime")
 def api_regime():
     try:
-        data = get_regime()
-        return jsonify(data)
+        return jsonify(get_regime())
     except Exception as e:
         log.error(f"Regime error: {e}")
-        return jsonify({"error": str(e), "label": "ERROR",
-                        "timestamp": datetime.utcnow().isoformat()}), 500
+        return jsonify({"error": str(e), "label": "ERROR", "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/macro")
 def api_macro():
     try:
-        data = get_macro()
-        return jsonify(data)
+        return jsonify(get_macro())
     except Exception as e:
         log.error(f"Macro error: {e}")
-        return jsonify({"error": str(e), "series": [],
-                        "timestamp": datetime.utcnow().isoformat()}), 500
+        return jsonify({"error": str(e), "series": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/yields")
 def api_yields():
     try:
-        data = get_yields()
-        return jsonify(data)
+        return jsonify(get_yields())
     except Exception as e:
         log.error(f"Yields error: {e}")
-        return jsonify({"error": str(e), "yields": [], "spreads": [],
-                        "timestamp": datetime.utcnow().isoformat()}), 500
+        return jsonify({"error": str(e), "yields": [], "spreads": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/news")
 def api_news():
     try:
-        data = get_news()
-        return jsonify(data)
+        return jsonify(get_news())
     except Exception as e:
         log.error(f"News error: {e}")
-        return jsonify({"error": str(e), "articles": [],
-                        "timestamp": datetime.utcnow().isoformat()}), 500
+        return jsonify({"error": str(e), "articles": [], "timestamp": datetime.utcnow().isoformat()}), 500
+
+@app.route("/api/market")
+def api_market():
+    try:
+        return jsonify(get_market())
+    except Exception as e:
+        log.error(f"Market error: {e}")
+        return jsonify({"error": str(e), "indices": [], "timestamp": datetime.utcnow().isoformat()}), 500
+
+@app.route("/api/economy")
+def api_economy():
+    try:
+        return jsonify(get_economy())
+    except Exception as e:
+        log.error(f"Economy error: {e}")
+        return jsonify({"error": str(e), "growth": [], "timestamp": datetime.utcnow().isoformat()}), 500
+
+@app.route("/api/credit")
+def api_credit():
+    try:
+        return jsonify(get_credit())
+    except Exception as e:
+        log.error(f"Credit error: {e}")
+        return jsonify({"error": str(e), "spreads": [], "timestamp": datetime.utcnow().isoformat()}), 500
+
+@app.route("/api/calendar")
+def api_calendar():
+    try:
+        return jsonify({"events": get_economic_calendar(), "timestamp": datetime.utcnow().isoformat()})
+    except Exception as e:
+        log.error(f"Calendar error: {e}")
+        return jsonify({"error": str(e), "events": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/health")
 def api_health():
-    """Full health check — confirms all modules are responding."""
     health = {"status": "ok", "timestamp": datetime.utcnow().isoformat(), "modules": {}}
-    for name, fn in [("regime", get_regime), ("macro", get_macro),
-                     ("yields", get_yields), ("news", get_news)]:
+    for name, fn in [("regime", get_regime), ("macro", get_macro), ("yields", get_yields),
+                     ("news", get_news), ("market", get_market), ("economy", get_economy),
+                     ("credit", get_credit)]:
         try:
             fn()
             health["modules"][name] = "ok"
@@ -107,9 +136,7 @@ def api_health():
             health["status"] = "degraded"
     return jsonify(health)
 
-# ── Internal Keep-Alive Thread ─────────────────────────────────
-# Backup in case UptimeRobot is not configured yet.
-# Pings /ping every 4 minutes internally to prevent Replit sleep.
+# ── INTERNAL KEEP-ALIVE ───────────────────────────────────────
 def internal_keepalive():
     import urllib.request
     replit_url = os.environ.get("REPLIT_URL", "")
@@ -122,14 +149,11 @@ def internal_keepalive():
             log.info("Keep-alive ping sent.")
         except Exception as e:
             log.warning(f"Keep-alive failed: {e}")
-        time.sleep(240)  # every 4 minutes
+        time.sleep(240)
 
-# ── Startup ────────────────────────────────────────────────────
 if __name__ == "__main__":
-    # Start internal keep-alive thread
     ka_thread = threading.Thread(target=internal_keepalive, daemon=True)
     ka_thread.start()
-
     port = int(os.environ.get("PORT", 5000))
     log.info(f"Starting Macro Terminal on port {port}")
     app.run(host="0.0.0.0", port=port, debug=False)

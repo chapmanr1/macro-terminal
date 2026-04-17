@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<!-- FILE: templates/index.html -->
-<!-- Bloomberg Terminal-Style Macro Dashboard -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -9,429 +7,321 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <title>MACRO TERMINAL</title>
   <style>
-    /* ── RESET & BASE ─────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:        #0a0a0a;
-      --bg2:       #0f0f0f;
-      --bg3:       #141414;
-      --border:    #1a1a1a;
-      --border2:   #242424;
-      --green:     #00d964;
-      --green-dim: #00873e;
-      --amber:     #f59e0b;
-      --amber-dim: #92610a;
-      --red:       #ef4444;
-      --red-dim:   #7f1d1d;
-      --blue:      #38bdf8;
-      --white:     #e5e7eb;
-      --muted:     #4b5563;
-      --muted2:    #374151;
-      --font:      'Courier New', Courier, monospace;
+      --bg: #0a0a0a; --bg2: #0f0f0f; --bg3: #141414;
+      --border: #1a1a1a; --border2: #242424;
+      --green: #00d964; --green-dim: #00873e;
+      --amber: #f59e0b; --amber-dim: #92610a;
+      --red: #ef4444; --red-dim: #7f1d1d;
+      --blue: #38bdf8; --orange: #f97316;
+      --white: #e5e7eb; --muted: #4b5563; --muted2: #374151;
+      --font: 'Courier New', Courier, monospace;
     }
+    html, body { background: var(--bg); color: var(--white); font-family: var(--font); font-size: 12px; line-height: 1.4; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    .terminal { max-width: 1400px; margin: 0 auto; padding: 0 0 60px; }
 
-    html, body {
-      background: var(--bg);
-      color: var(--white);
-      font-family: var(--font);
-      font-size: 12px;
-      line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
-
-    /* ── LAYOUT ───────────────────────────────────────────────── */
-    .terminal {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 0 40px;
-    }
-
-    /* ── TOP BAR ──────────────────────────────────────────────── */
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 14px;
-      border-bottom: 1px solid var(--border);
-      background: #080808;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .topbar-brand {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--amber);
-      letter-spacing: 0.2em;
-    }
-    .topbar-sub {
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-    }
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-    }
-    .status-dot {
-      display: inline-block;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-      margin-right: 5px;
-      animation: pulse-dot 2s infinite;
-    }
+    /* ── TOP BAR ── */
+    .topbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); background: #080808; position: sticky; top: 0; z-index: 100; }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar-brand { font-size: 13px; font-weight: 700; color: var(--amber); letter-spacing: 0.2em; }
+    .topbar-sub { font-size: 9px; color: var(--muted); letter-spacing: 0.12em; }
+    .topbar-right { display: flex; align-items: center; gap: 14px; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); margin-right: 5px; animation: pulse-dot 2s infinite; }
     .status-dot.loading { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
-    .status-dot.error   { background: var(--red);   box-shadow: 0 0 6px var(--red); animation: none; }
-    @keyframes pulse-dot {
-      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
-    }
+    .status-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); animation: none; }
+    @keyframes pulse-dot { 0%,100%{opacity:1}50%{opacity:0.4} }
     #clock { color: var(--white); font-size: 10px; }
 
-    /* ── SECTION HEADERS ──────────────────────────────────────── */
-    .section { margin: 0; }
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 14px;
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border);
-      border-top: 1px solid var(--border);
-    }
-    .section-title {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      color: var(--amber);
-    }
-    .section-line {
-      flex: 1;
-      height: 1px;
-      background: var(--border2);
-    }
-    .section-meta {
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-    }
+    /* ── REFRESH BAR ── */
+    .refresh-bar { height: 2px; background: var(--border); position: relative; overflow: hidden; }
+    .refresh-progress { height: 100%; background: var(--amber); transition: width linear; }
 
-    /* ── REGIME BLOCK ─────────────────────────────────────────── */
-    .regime-block {
-      padding: 16px 14px;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 20px;
-      align-items: start;
-    }
-    .regime-label-wrap {}
-    .regime-tag {
-      display: inline-block;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      padding: 6px 16px;
-      border: 2px solid var(--amber);
-      color: var(--amber);
-      background: rgba(245,158,11,0.07);
-      margin-bottom: 6px;
-    }
-    .regime-tag.GOLDILOCKS    { border-color: var(--green); color: var(--green); background: rgba(0,217,100,0.06); }
-    .regime-tag.RECESSION     { border-color: var(--red);   color: var(--red);   background: rgba(239,68,68,0.06); }
-    .regime-tag.REFLATION     { border-color: var(--blue);  color: var(--blue);  background: rgba(56,189,248,0.06); }
-    .regime-tag.OVERHEATING   { border-color: var(--red);   color: var(--red);   background: rgba(239,68,68,0.06); }
-    .regime-tag.STAGFLATION   { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.07); }
-    .regime-tag.STAGFLATION_RISK { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.05); }
+    /* ── TAB NAVIGATION ── */
+    .tab-nav { display: flex; background: #0d0d0d; border-bottom: 2px solid var(--border2); padding: 0 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; position: sticky; top: 40px; z-index: 90; }
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn { padding: 10px 14px; font: 700 9px/1 var(--font); letter-spacing: 0.18em; color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; margin-bottom: -2px; transition: color 0.15s; -webkit-tap-highlight-color: transparent; }
+    .tab-btn:hover { color: var(--white); }
+    .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
-    .regime-confidence {
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-    }
+    /* ── SECTION HEADERS ── */
+    .section-header { display: flex; align-items: center; gap: 10px; padding: 7px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
+    .section-title { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; color: var(--amber); }
+    .section-line { flex: 1; height: 1px; background: var(--border2); }
+    .section-meta { font-size: 9px; color: var(--muted); letter-spacing: 0.08em; }
+    .sub-section-header { padding: 6px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); font-size: 9px; font-weight: 700; letter-spacing: 0.2em; color: var(--amber); }
+
+    /* ── SKELETON ── */
+    .skel { background: linear-gradient(90deg,var(--bg3) 25%,var(--border2) 50%,var(--bg3) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 2px; }
+    @keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
+    .error-row { padding: 16px 14px; color: var(--red); font-size: 10px; letter-spacing: 0.08em; }
+
+    /* ── COLOR UTILS ── */
+    .c-green{color:var(--green)} .c-amber{color:var(--amber)} .c-red{color:var(--red)}
+    .c-blue{color:var(--blue)} .c-muted{color:var(--muted)} .c-white{color:var(--white)}
+    .c-orange{color:var(--orange)}
+
+    /* ── OVERVIEW: REGIME ── */
+    .regime-block { padding: 16px 14px; background: var(--bg); border-bottom: 1px solid var(--border); display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: start; }
+    .regime-tag { display: inline-block; font-size: 18px; font-weight: 700; letter-spacing: 0.15em; padding: 6px 16px; border: 2px solid var(--amber); color: var(--amber); background: rgba(245,158,11,0.07); margin-bottom: 6px; }
+    .regime-tag.STRONG-GROWTH { border-color:var(--green);color:var(--green);background:rgba(0,217,100,0.06) }
+    .regime-tag.RECESSION { border-color:var(--red);color:var(--red);background:rgba(239,68,68,0.06) }
+    .regime-tag.REFLATION { border-color:var(--blue);color:var(--blue);background:rgba(56,189,248,0.06) }
+    .regime-tag.OVERHEATING { border-color:var(--red);color:var(--red);background:rgba(239,68,68,0.06) }
+    .regime-confidence { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; }
     .regime-confidence span { color: var(--white); }
-
-    .regime-indicators {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 8px;
-    }
-    .regime-ind {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      padding: 7px 10px;
-    }
-    .regime-ind-name {
-      font-size: 8px;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-      margin-bottom: 3px;
-    }
-    .regime-ind-val {
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .regime-ind-signal {
-      font-size: 8px;
-      margin-top: 2px;
-      letter-spacing: 0.08em;
-    }
-
-    .regime-risks {}
-    .regime-risks-title {
-      font-size: 8px;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-      margin-bottom: 6px;
-    }
-    .regime-risk-item {
-      font-size: 10px;
-      color: var(--amber);
-      padding: 3px 0;
-      border-bottom: 1px solid var(--border);
-      letter-spacing: 0.04em;
-    }
+    .regime-indicators { display: grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap: 8px; }
+    .regime-ind { background: var(--bg3); border: 1px solid var(--border); padding: 7px 10px; }
+    .regime-ind-name { font-size: 8px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 3px; }
+    .regime-ind-val { font-size: 12px; font-weight: 700; }
+    .regime-ind-signal { font-size: 8px; margin-top: 2px; letter-spacing: 0.08em; }
+    .regime-risks-title { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 6px; }
+    .regime-risk-item { font-size: 10px; color: var(--amber); padding: 3px 0; border-bottom: 1px solid var(--border); letter-spacing: 0.04em; }
     .regime-risk-item:last-child { border-bottom: none; }
+    .regime-positioning { margin-top: 10px; }
+    .regime-pos-title { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 6px; }
+    .pos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .pos-item { font-size: 9px; padding: 4px 8px; border: 1px solid var(--border); letter-spacing: 0.05em; }
+    .pos-item.OW { border-color:var(--green-dim);color:var(--green);background:rgba(0,217,100,0.04) }
+    .pos-item.UW { border-color:var(--red-dim);color:var(--red);background:rgba(239,68,68,0.04) }
+    .pos-item.N { border-color:var(--border2);color:var(--muted) }
 
-    .regime-positioning {
-      margin-top: 10px;
-    }
-    .regime-pos-title {
-      font-size: 8px;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-      margin-bottom: 6px;
-    }
-    .pos-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 5px;
-    }
-    .pos-item {
-      font-size: 9px;
-      padding: 4px 8px;
-      border: 1px solid var(--border);
-      letter-spacing: 0.05em;
-    }
-    .pos-item.OW { border-color: var(--green-dim); color: var(--green); background: rgba(0,217,100,0.04); }
-    .pos-item.UW { border-color: var(--red-dim);   color: var(--red);   background: rgba(239,68,68,0.04); }
-    .pos-item.N  { border-color: var(--border2);   color: var(--muted); }
-
-    /* ── MACRO INDICATORS GRID ────────────────────────────────── */
-    .macro-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 1px;
-      background: var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .macro-cell {
-      background: var(--bg);
-      padding: 10px 12px;
-      cursor: default;
-      transition: background 0.15s;
-    }
+    /* ── OVERVIEW: MACRO GRID ── */
+    .macro-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .macro-cell { background: var(--bg); padding: 10px 12px; transition: background 0.15s; }
     .macro-cell:hover { background: var(--bg3); }
-    .macro-cell-label {
-      font-size: 8px;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-    }
-    .macro-cell-value {
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-    .macro-cell-sub {
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-    }
-    .macro-cell-change {
-      font-size: 9px;
-      margin-top: 3px;
-      letter-spacing: 0.05em;
-    }
+    .macro-cell-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 4px; }
+    .macro-cell-value { font-size: 20px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+    .macro-cell-sub { font-size: 9px; color: var(--muted); letter-spacing: 0.05em; }
+    .macro-cell-change { font-size: 9px; margin-top: 3px; letter-spacing: 0.05em; }
 
-    /* ── YIELD CURVE ──────────────────────────────────────────── */
-    .yields-block {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 20px;
-    }
-    .yield-bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-      height: 80px;
-    }
-    .yield-bar-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      flex: 1;
-    }
-    .yield-bar-val {
-      font-size: 9px;
-      color: var(--white);
-      letter-spacing: 0.04em;
-    }
-    .yield-bar {
-      width: 100%;
-      min-height: 2px;
-      background: var(--green);
-      border-radius: 1px 1px 0 0;
-      transition: height 0.5s ease;
-    }
+    /* ── OVERVIEW: YIELD CURVE ── */
+    .yields-block { padding: 12px 14px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 20px; }
+    .yield-bars { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
+    .yield-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+    .yield-bar-val { font-size: 9px; color: var(--white); letter-spacing: 0.04em; }
+    .yield-bar { width: 100%; min-height: 2px; background: var(--green); border-radius: 1px 1px 0 0; transition: height 0.5s ease; }
     .yield-bar.inverted { background: var(--red); }
-    .yield-bar-label {
-      font-size: 8px;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-    }
-    .yield-spread-box {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 8px;
-      min-width: 140px;
-    }
-    .yield-spread-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      font-size: 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
-    }
+    .yield-bar-label { font-size: 8px; color: var(--muted); letter-spacing: 0.06em; }
+    .yield-spread-box { display: flex; flex-direction: column; justify-content: center; gap: 8px; min-width: 140px; }
+    .yield-spread-item { display: flex; justify-content: space-between; gap: 16px; font-size: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
     .yield-spread-item:last-child { border-bottom: none; padding-bottom: 0; }
     .yield-spread-label { color: var(--muted); letter-spacing: 0.08em; }
-    .yield-spread-val   { font-weight: 700; }
+    .yield-spread-val { font-weight: 700; }
 
-    /* ── NEWS FEED ────────────────────────────────────────────── */
+    /* ── MARKETS: FUTURES ── */
+    .futures-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .futures-cell { background: var(--bg); padding: 12px 14px; }
+    .futures-label { font-size: 8px; color: var(--muted); letter-spacing: 0.14em; margin-bottom: 4px; }
+    .futures-price { font-size: 20px; font-weight: 700; line-height: 1; margin-bottom: 3px; }
+    .futures-change { font-size: 10px; letter-spacing: 0.05em; }
+    .signal-bar { padding: 8px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .signal-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; padding: 3px 10px; border: 1px solid; }
+    .signal-badge.green { border-color: var(--green); color: var(--green); background: rgba(0,217,100,0.06); }
+    .signal-badge.red { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.06); }
+    .signal-badge.amber { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.05); }
+    .signal-badge.muted { border-color: var(--muted); color: var(--muted); }
+    .signal-detail { font-size: 9px; color: var(--muted); flex: 1; }
+
+    /* ── MARKETS: INDICES ── */
+    .indices-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .index-cell { background: var(--bg); padding: 12px 14px; }
+    .index-abbr { font-size: 8px; color: var(--muted); letter-spacing: 0.14em; margin-bottom: 4px; }
+    .index-label { font-size: 8px; color: var(--muted2); letter-spacing: 0.08em; margin-bottom: 4px; }
+    .index-price { font-size: 20px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+    .index-day { font-size: 10px; margin-bottom: 3px; }
+    .index-ytd { font-size: 9px; color: var(--muted); }
+    .index-ytd span { font-weight: 700; }
+
+    /* ── MARKETS: SECTOR HEATMAP ── */
+    .sector-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .sector-cell { padding: 10px 10px 8px; text-align: center; transition: opacity 0.15s; }
+    .sector-cell-label { font-size: 8px; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 4px; }
+    .sector-cell-pct { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .sector-cell-ticker { font-size: 7px; color: var(--muted); letter-spacing: 0.1em; }
+
+    /* ── MARKETS: VIX GAUGE ── */
+    .vix-wrap { padding: 14px; border-bottom: 1px solid var(--border); }
+    .vix-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .vix-value { font-size: 32px; font-weight: 700; line-height: 1; }
+    .vix-change { font-size: 11px; }
+    .vix-level-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; padding: 3px 12px; border: 1px solid; }
+    .vix-track { position: relative; height: 14px; border-radius: 3px; background: linear-gradient(to right, #00d964 0% 24%, #00873e 24% 34%, #f59e0b 34% 44%, #f97316 44% 56%, #ef4444 56% 70%, #7f1d1d 70% 100%); margin-bottom: 6px; }
+    .vix-marker { position: absolute; top: -4px; width: 3px; height: 22px; background: white; border-radius: 1px; transform: translateX(-50%); box-shadow: 0 0 5px rgba(255,255,255,0.7); }
+    .vix-scale { display: flex; justify-content: space-between; font-size: 7px; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 8px; }
+    .vix-description { font-size: 10px; color: var(--muted); line-height: 1.5; }
+
+    /* ── MARKETS: COMMODITIES & CURRENCIES ── */
+    .commod-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .commod-cell { background: var(--bg); padding: 10px 12px; }
+    .commod-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 4px; }
+    .commod-price { font-size: 18px; font-weight: 700; line-height: 1; margin-bottom: 3px; }
+    .commod-change { font-size: 9px; }
+    .commod-suffix { font-size: 8px; color: var(--muted); margin-top: 2px; }
+    .currency-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .currency-cell { background: var(--bg); padding: 12px 14px; }
+    .currency-label { font-size: 8px; color: var(--muted); letter-spacing: 0.14em; margin-bottom: 4px; }
+    .currency-price { font-size: 24px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+    .currency-change { font-size: 10px; margin-bottom: 6px; }
+    .currency-signal { font-size: 9px; color: var(--muted); line-height: 1.4; border-top: 1px solid var(--border); padding-top: 6px; }
+
+    /* ── ECONOMY: SCORECARD ── */
+    .scorecard-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(190px,1fr)); gap: 1px; background: var(--border); }
+    .scorecard-cell { background: var(--bg); padding: 10px 12px; }
+    .scorecard-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
+    .ind-type-badge { font-size: 6px; padding: 1px 4px; border: 1px solid; letter-spacing: 0.08em; }
+    .ind-type-badge.leading { border-color: var(--green-dim); color: var(--green-dim); }
+    .ind-type-badge.lagging { border-color: var(--muted); color: var(--muted); }
+    .scorecard-value { font-size: 20px; font-weight: 700; line-height: 1; margin-bottom: 3px; }
+    .scorecard-arrow { font-size: 11px; margin-left: 4px; }
+    .scorecard-signal { font-size: 8px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 3px; }
+    .scorecard-desc { font-size: 8px; color: var(--muted2); margin-bottom: 5px; }
+    .scorecard-interp { font-size: 9px; color: var(--muted); line-height: 1.5; border-top: 1px solid var(--border); padding-top: 5px; }
+
+    /* ── ECONOMY: RECESSION GAUGE ── */
+    .recession-wrap { padding: 14px; border-bottom: 1px solid var(--border); }
+    .recession-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+    .recession-pct { font-size: 32px; font-weight: 700; }
+    .recession-signal { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; padding: 3px 10px; border: 1px solid; }
+    .recession-track { height: 10px; border-radius: 3px; background: var(--border2); overflow: hidden; margin-bottom: 8px; }
+    .recession-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+    .recession-interp { font-size: 10px; color: var(--muted); line-height: 1.5; }
+
+    /* ── ECONOMY: K-SHAPE ── */
+    .kshape-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .kshape-cell { background: var(--bg); padding: 14px; }
+    .kshape-title { font-size: 8px; color: var(--muted); letter-spacing: 0.14em; margin-bottom: 8px; }
+    .kshape-score { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .kshape-signal { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; margin-bottom: 8px; }
+    .kshape-track { height: 8px; background: var(--border2); border-radius: 3px; margin-bottom: 10px; overflow: hidden; }
+    .kshape-fill { height: 100%; border-radius: 3px; background: var(--green); }
+    .kshape-ind { font-size: 9px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); line-height: 1.4; }
+    .kshape-ind:last-child { border-bottom: none; }
+    .kshape-interp { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 10px; color: var(--muted); line-height: 1.5; background: var(--bg2); }
+
+    /* ── CREDIT: SPREADS ── */
+    .spread-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .spread-cell { background: var(--bg); padding: 14px; }
+    .spread-lbl { font-size: 8px; color: var(--muted); letter-spacing: 0.14em; margin-bottom: 8px; }
+    .spread-value { font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 2px; }
+    .spread-unit-txt { font-size: 12px; color: var(--muted); }
+    .spread-change { font-size: 10px; margin-bottom: 8px; }
+    .spread-signal { display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: 0.12em; padding: 2px 8px; border: 1px solid; margin-bottom: 10px; }
+    .spread-interp { font-size: 10px; color: var(--muted); line-height: 1.5; border-top: 1px solid var(--border); padding-top: 8px; margin-bottom: 10px; }
+    .spread-ctx-wrap { }
+    .spread-ctx-lbl { font-size: 7px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 4px; }
+    .spread-ctx-track { height: 8px; border-radius: 2px; position: relative; background: var(--border2); overflow: visible; }
+    .spread-ctx-zone { position: absolute; top: 0; height: 100%; }
+    .spread-ctx-marker { position: absolute; top: -4px; width: 2px; height: 16px; background: white; border-radius: 1px; transform: translateX(-50%); box-shadow: 0 0 4px rgba(255,255,255,0.5); }
+    .spread-ctx-labels { display: flex; justify-content: space-between; font-size: 7px; color: var(--muted); margin-top: 3px; }
+
+    /* ── CREDIT: BREAKEEVNS / REAL YIELDS ── */
+    .tips-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .tips-cell { background: var(--bg); padding: 12px 14px; }
+    .tips-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 4px; }
+    .tips-value { font-size: 22px; font-weight: 700; line-height: 1; margin-bottom: 3px; }
+    .tips-change { font-size: 9px; margin-bottom: 5px; }
+    .tips-interp { font-size: 9px; color: var(--muted); line-height: 1.4; border-top: 1px solid var(--border); padding-top: 5px; }
+
+    /* ── CREDIT: YIELD CURVE TABLE ── */
+    .curve-table-wrap { padding: 12px 14px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+    .curve-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .curve-table th { font-size: 8px; color: var(--muted); letter-spacing: 0.1em; padding: 4px 10px; text-align: right; border-bottom: 1px solid var(--border2); }
+    .curve-table th:first-child { text-align: left; }
+    .curve-table td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--border); font-weight: 700; }
+    .curve-table td:first-child { text-align: left; color: var(--muted); font-weight: 400; font-size: 9px; letter-spacing: 0.08em; }
+    .curve-table tr:last-child td { border-bottom: none; }
+    .curve-spreads { display: flex; gap: 20px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .curve-spread-item { font-size: 10px; }
+    .curve-spread-lbl { color: var(--muted); margin-right: 6px; letter-spacing: 0.06em; }
+
+    /* ── CREDIT: THESIS MONITOR ── */
+    .trigger-item { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .trigger-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .trigger-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--white); }
+    .trigger-status { font-size: 7px; font-weight: 700; letter-spacing: 0.12em; padding: 2px 8px; border: 1px solid; white-space: nowrap; flex-shrink: 0; }
+    .trigger-status.not-met { border-color: var(--muted); color: var(--muted); }
+    .trigger-status.approaching { border-color: var(--amber); color: var(--amber); }
+    .trigger-status.triggered { border-color: var(--green); color: var(--green); background: rgba(0,217,100,0.06); }
+    .trigger-status.manual { border-color: var(--blue); color: var(--blue); }
+    .trigger-status.error { border-color: var(--red-dim); color: var(--red); }
+    .trigger-track { height: 8px; background: var(--border2); border-radius: 3px; position: relative; margin-bottom: 5px; overflow: visible; }
+    .trigger-fill { height: 100%; border-radius: 3px; background: var(--muted2); transition: width 0.6s ease; }
+    .trigger-fill.approaching { background: var(--amber-dim); }
+    .trigger-fill.triggered { background: var(--green-dim); }
+    .trigger-threshold-line { position: absolute; top: -3px; width: 2px; height: 14px; background: var(--amber); border-radius: 1px; transform: translateX(-50%); }
+    .trigger-values { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-bottom: 6px; }
+    .trigger-current { color: var(--white); font-weight: 700; }
+    .trigger-desc { font-size: 9px; color: var(--muted); line-height: 1.5; }
+    .trigger-sustained { font-size: 8px; color: var(--muted); margin-top: 3px; letter-spacing: 0.04em; }
+
+    /* ── NEWS TAB ── */
+    .driving-item { background: #0d0d0d; border-bottom: 1px solid var(--border); padding: 12px 14px; display: grid; grid-template-columns: 50px 1fr 24px; gap: 10px; align-items: start; text-decoration: none; color: inherit; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
+    .driving-item:hover { background: var(--bg3); }
+    .driving-rank { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; padding-top: 2px; }
+    .driving-headline { font-size: 12px; font-weight: 700; color: var(--white); line-height: 1.4; letter-spacing: 0.02em; }
+    .driving-meta { font-size: 9px; color: var(--muted); margin-top: 5px; letter-spacing: 0.05em; }
+    .driving-icon { font-size: 14px; text-align: right; padding-top: 2px; }
     .news-list { border-bottom: 1px solid var(--border); }
-    .news-item {
-      display: grid;
-      grid-template-columns: 60px 1fr 80px;
-      gap: 10px;
-      align-items: start;
-      padding: 9px 14px;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-    }
+    .news-item { display: grid; grid-template-columns: 60px 1fr 80px; gap: 10px; align-items: start; padding: 9px 14px; border-bottom: 1px solid var(--border); transition: background 0.15s; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; }
     .news-item:last-child { border-bottom: none; }
     .news-item:hover { background: var(--bg3); }
-    .news-time {
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-      padding-top: 1px;
-    }
-    .news-headline {
-      font-size: 11px;
-      color: var(--white);
-      line-height: 1.4;
-      letter-spacing: 0.02em;
-    }
-    .news-source {
-      font-size: 8px;
-      color: var(--amber);
-      letter-spacing: 0.08em;
-      text-align: right;
-      padding-top: 2px;
-    }
+    .news-time { font-size: 9px; color: var(--muted); letter-spacing: 0.06em; padding-top: 1px; }
+    .news-headline { font-size: 11px; color: var(--white); line-height: 1.4; letter-spacing: 0.02em; }
+    .news-source { font-size: 8px; color: var(--amber); letter-spacing: 0.08em; text-align: right; padding-top: 2px; }
 
-    /* ── SKELETON LOADER ──────────────────────────────────────── */
-    .skel {
-      background: linear-gradient(90deg, var(--bg3) 25%, var(--border2) 50%, var(--bg3) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
-      border-radius: 2px;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
+    /* ── CALENDAR ── */
+    .cal-day { border-bottom: 1px solid var(--border); }
+    .cal-day-hdr { padding: 6px 14px; background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+    .cal-day-name { font-size: 8px; color: var(--amber); letter-spacing: 0.14em; font-weight: 700; }
+    .cal-day-date { font-size: 9px; color: var(--muted); }
+    .cal-event { display: grid; grid-template-columns: 72px 1fr 64px; gap: 10px; padding: 7px 14px; border-bottom: 1px solid var(--border); align-items: center; }
+    .cal-event:last-child { border-bottom: none; }
+    .cal-time { font-size: 9px; color: var(--muted); }
+    .cal-name { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
+    .cal-impact { font-size: 7px; font-weight: 700; letter-spacing: 0.1em; padding: 2px 6px; text-align: center; }
+    .cal-impact.HIGH { color: var(--red); border: 1px solid var(--red-dim); }
+    .cal-impact.MEDIUM { color: var(--amber); border: 1px solid var(--amber-dim); }
+    .cal-impact.LOW { color: var(--muted); border: 1px solid var(--border2); }
 
-    /* ── ERROR STATE ──────────────────────────────────────────── */
-    .error-row {
-      padding: 16px 14px;
-      color: var(--red);
-      font-size: 10px;
-      letter-spacing: 0.08em;
-    }
-
-    /* ── COLOR UTILS ──────────────────────────────────────────── */
-    .c-green  { color: var(--green); }
-    .c-amber  { color: var(--amber); }
-    .c-red    { color: var(--red); }
-    .c-blue   { color: var(--blue); }
-    .c-muted  { color: var(--muted); }
-    .c-white  { color: var(--white); }
-
-    /* ── REFRESH COUNTDOWN ────────────────────────────────────── */
-    .refresh-bar {
-      height: 2px;
-      background: var(--border);
-      position: relative;
-      overflow: hidden;
-    }
-    .refresh-progress {
-      height: 100%;
-      background: var(--amber);
-      transition: width linear;
-    }
-
-    /* ── MOBILE ───────────────────────────────────────────────── */
+    /* ── MOBILE ── */
     @media (max-width: 640px) {
-      .regime-block {
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
+      .regime-block { grid-template-columns: 1fr; gap: 14px; }
       .regime-tag { font-size: 14px; }
-      .macro-grid { grid-template-columns: repeat(2, 1fr); }
+      .macro-grid { grid-template-columns: repeat(2,1fr); }
       .macro-cell-value { font-size: 16px; }
       .yields-block { grid-template-columns: 1fr; }
       .yield-spread-box { flex-direction: row; flex-wrap: wrap; min-width: unset; }
-      .yield-spread-item { min-width: 120px; }
-      .news-item { grid-template-columns: 50px 1fr; }
-      .news-source { display: none; }
+      .futures-strip { grid-template-columns: 1fr; }
+      .futures-price { font-size: 16px; }
+      .indices-grid { grid-template-columns: repeat(2,1fr); }
+      .index-price { font-size: 16px; }
+      .sector-grid { grid-template-columns: repeat(3,1fr); }
+      .tips-grid { grid-template-columns: repeat(2,1fr); }
+      .spread-grid { grid-template-columns: 1fr; }
+      .spread-value { font-size: 24px; }
+      .kshape-grid { grid-template-columns: 1fr; }
+      .scorecard-grid { grid-template-columns: repeat(2,1fr); }
       .topbar-sub { display: none; }
       .pos-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .news-item { grid-template-columns: 50px 1fr; }
+      .news-source { display: none; }
+      .driving-item { grid-template-columns: 44px 1fr 20px; }
+      .cal-event { grid-template-columns: 60px 1fr 54px; }
     }
   </style>
 </head>
 <body>
 <div class="terminal">
 
-  <!-- ── TOP BAR ────────────────────────────────────────────── -->
+  <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-left">
       <div>
         <div class="topbar-brand">MACRO TERMINAL</div>
-        <div class="topbar-sub">REGIME · INDICATORS · YIELDS · NEWS</div>
+        <div class="topbar-sub">REGIME · MARKETS · ECONOMY · CREDIT · NEWS</div>
       </div>
     </div>
     <div class="topbar-right">
@@ -441,53 +331,51 @@
     </div>
   </div>
 
-  <!-- ── REFRESH PROGRESS BAR ───────────────────────────────── -->
+  <!-- REFRESH BAR -->
   <div class="refresh-bar"><div class="refresh-progress" id="refreshBar" style="width:100%"></div></div>
 
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- SECTION 1: REGIME STATUS                                  -->
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <div class="section">
+  <!-- TAB NAVIGATION -->
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="overview">OVERVIEW</button>
+    <button class="tab-btn" data-tab="markets">MARKETS</button>
+    <button class="tab-btn" data-tab="economy">ECONOMY</button>
+    <button class="tab-btn" data-tab="credit">CREDIT</button>
+    <button class="tab-btn" data-tab="news">NEWS</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- OVERVIEW TAB                                          -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="tab-panel active" id="tab-overview">
+
     <div class="section-header">
       <div class="section-title">REGIME STATUS</div>
       <div class="section-line"></div>
       <div class="section-meta" id="regimeTimestamp">--</div>
     </div>
     <div id="regimeContent">
-      <!-- Skeleton -->
       <div class="regime-block">
         <div><div class="skel" style="width:200px;height:44px;margin-bottom:8px"></div><div class="skel" style="width:120px;height:12px"></div></div>
         <div class="regime-indicators" style="grid-template-columns:repeat(4,1fr)">
           <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
           <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
         </div>
-        <div><div class="skel" style="width:140px;height:12px;margin-bottom:6px"></div><div class="skel" style="width:140px;height:10px;margin-bottom:4px"></div><div class="skel" style="width:140px;height:10px"></div></div>
+        <div><div class="skel" style="width:140px;height:12px;margin-bottom:6px"></div><div class="skel" style="width:140px;height:10px"></div></div>
       </div>
     </div>
-  </div>
 
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- SECTION 2: MACRO INDICATORS                               -->
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <div class="section">
     <div class="section-header">
       <div class="section-title">MACRO INDICATORS</div>
       <div class="section-line"></div>
       <div class="section-meta" id="macroTimestamp">--</div>
     </div>
     <div id="macroContent" class="macro-grid">
-      <!-- Skeletons -->
       <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
       <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
       <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
       <div class="macro-cell"><div class="skel" style="height:10px;width:80px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
     </div>
-  </div>
 
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- SECTION 3: YIELD CURVE                                    -->
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <div class="section">
     <div class="section-header">
       <div class="section-title">YIELD CURVE</div>
       <div class="section-line"></div>
@@ -496,12 +384,9 @@
     <div id="yieldsContent">
       <div class="yields-block">
         <div class="yield-bars" id="yieldBars">
-          <div class="skel" style="height:60px;flex:1"></div>
-          <div class="skel" style="height:40px;flex:1"></div>
-          <div class="skel" style="height:70px;flex:1"></div>
-          <div class="skel" style="height:75px;flex:1"></div>
-          <div class="skel" style="height:78px;flex:1"></div>
-          <div class="skel" style="height:80px;flex:1"></div>
+          <div class="skel" style="height:60px;flex:1"></div><div class="skel" style="height:40px;flex:1"></div>
+          <div class="skel" style="height:70px;flex:1"></div><div class="skel" style="height:75px;flex:1"></div>
+          <div class="skel" style="height:78px;flex:1"></div><div class="skel" style="height:80px;flex:1"></div>
         </div>
         <div class="yield-spread-box" id="yieldSpreads">
           <div class="skel" style="height:14px;width:130px;margin-bottom:6px"></div>
@@ -510,297 +395,1027 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <!-- SECTION 4: NEWS FEED                                      -->
-  <!-- ══════════════════════════════════════════════════════════ -->
-  <div class="section">
+  </div><!-- /tab-overview -->
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- MARKETS TAB                                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-markets">
+
+    <div class="section-header">
+      <div class="section-title">PRE-MARKET FUTURES</div>
+      <div class="section-line"></div>
+      <div class="section-meta" id="marketsTimestamp">--</div>
+    </div>
+    <div id="futuresContent">
+      <div class="futures-strip">
+        <div class="futures-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px"></div></div>
+        <div class="futures-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px"></div></div>
+        <div class="futures-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px"></div></div>
+      </div>
+      <div class="signal-bar"><div class="skel" style="height:22px;width:100px"></div><div class="skel" style="height:12px;width:250px;margin-left:8px"></div></div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">US EQUITY INDICES</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="indicesContent" class="indices-grid">
+      <div class="index-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:70px"></div></div>
+      <div class="index-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:70px"></div></div>
+      <div class="index-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:70px"></div></div>
+      <div class="index-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:28px;width:80px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60px;margin-bottom:3px"></div><div class="skel" style="height:9px;width:70px"></div></div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">SECTOR ROTATION</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="sectorSignalBar" class="signal-bar"><div class="skel" style="height:22px;width:160px"></div><div class="skel" style="height:12px;width:300px;margin-left:8px"></div></div>
+    <div id="sectorContent" class="sector-grid">
+      <div class="sector-cell" style="background:var(--bg3)"><div class="skel" style="height:8px;width:40px;margin:0 auto 6px"></div><div class="skel" style="height:18px;width:50px;margin:0 auto 4px"></div></div>
+      <div class="sector-cell" style="background:var(--bg3)"><div class="skel" style="height:8px;width:40px;margin:0 auto 6px"></div><div class="skel" style="height:18px;width:50px;margin:0 auto 4px"></div></div>
+      <div class="sector-cell" style="background:var(--bg3)"><div class="skel" style="height:8px;width:40px;margin:0 auto 6px"></div><div class="skel" style="height:18px;width:50px;margin:0 auto 4px"></div></div>
+      <div class="sector-cell" style="background:var(--bg3)"><div class="skel" style="height:8px;width:40px;margin:0 auto 6px"></div><div class="skel" style="height:18px;width:50px;margin:0 auto 4px"></div></div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">VIX FEAR GAUGE</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="vixContent">
+      <div class="vix-wrap">
+        <div class="skel" style="height:32px;width:120px;margin-bottom:10px"></div>
+        <div class="skel" style="height:14px;margin-bottom:8px"></div>
+        <div class="skel" style="height:12px;width:90%"></div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">COMMODITIES</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="commodContent" class="commod-grid">
+      <div class="commod-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:70px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:50px"></div></div>
+      <div class="commod-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:70px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:50px"></div></div>
+      <div class="commod-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:70px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:50px"></div></div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">CURRENCIES</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="currencyContent" class="currency-grid">
+      <div class="currency-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:30px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:10px;width:70px;margin-bottom:8px"></div><div class="skel" style="height:9px;width:200px"></div></div>
+      <div class="currency-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:30px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:10px;width:70px"></div></div>
+    </div>
+
+  </div><!-- /tab-markets -->
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- ECONOMY TAB                                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-economy">
+
+    <div class="section-header">
+      <div class="section-title">ECONOMIC SCORECARD</div>
+      <div class="section-line"></div>
+      <div class="section-meta" id="economyTimestamp">--</div>
+    </div>
+
+    <div class="sub-section-header">▸ GROWTH</div>
+    <div id="scorecard-growth" class="scorecard-grid">
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:100px"></div></div>
+    </div>
+
+    <div class="sub-section-header">▸ INFLATION</div>
+    <div id="scorecard-inflation" class="scorecard-grid">
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+    </div>
+
+    <div class="sub-section-header">▸ LABOR</div>
+    <div id="scorecard-labor" class="scorecard-grid">
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+    </div>
+
+    <div class="sub-section-header">▸ CONSUMER</div>
+    <div id="scorecard-consumer" class="scorecard-grid">
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+      <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">RECESSION PROBABILITY</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="recessionContent">
+      <div class="recession-wrap">
+        <div class="skel" style="height:32px;width:120px;margin-bottom:10px"></div>
+        <div class="skel" style="height:10px;margin-bottom:10px"></div>
+        <div class="skel" style="height:12px;width:90%"></div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">K-SHAPE DIVERGENCE MONITOR</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="kshapeContent">
+      <div class="kshape-grid">
+        <div class="kshape-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:8px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:8px;margin-bottom:10px"></div><div class="skel" style="height:9px;margin-bottom:4px"></div></div>
+        <div class="kshape-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:8px"></div><div class="skel" style="height:28px;width:60px;margin-bottom:6px"></div><div class="skel" style="height:8px;margin-bottom:10px"></div><div class="skel" style="height:9px;margin-bottom:4px"></div></div>
+      </div>
+    </div>
+
+  </div><!-- /tab-economy -->
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- CREDIT TAB                                            -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-credit">
+
+    <div class="section-header">
+      <div class="section-title">CREDIT SPREAD DASHBOARD</div>
+      <div class="section-line"></div>
+      <div class="section-meta" id="creditTimestamp">--</div>
+    </div>
+    <div id="spreadsContent" class="spread-grid">
+      <div class="spread-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:8px"></div><div class="skel" style="height:36px;width:100px;margin-bottom:6px"></div><div class="skel" style="height:10px;width:80px;margin-bottom:10px"></div><div class="skel" style="height:9px;width:95%"></div></div>
+      <div class="spread-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:8px"></div><div class="skel" style="height:36px;width:100px;margin-bottom:6px"></div><div class="skel" style="height:10px;width:80px;margin-bottom:10px"></div><div class="skel" style="height:9px;width:95%"></div></div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">TIPS &amp; BREAKEVEN INFLATION</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="breakevensContent" class="tips-grid">
+      <div class="tips-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:26px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:80px"></div></div>
+      <div class="tips-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:26px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:80px"></div></div>
+      <div class="tips-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:26px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:80px"></div></div>
+      <div class="tips-cell"><div class="skel" style="height:8px;width:80px;margin-bottom:5px"></div><div class="skel" style="height:26px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:9px;width:80px"></div></div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">YIELD CURVE — BOND DESK VIEW</div>
+      <div class="section-line"></div>
+    </div>
+    <div id="creditCurveContent">
+      <div class="curve-table-wrap">
+        <div class="skel" style="height:120px"></div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title" style="color:var(--orange)">⬦ THESIS MONITOR</div>
+      <div class="section-line"></div>
+      <div class="section-meta" style="color:var(--muted)">STAGFLATION FALSIFICATION TRIGGERS</div>
+    </div>
+    <div style="padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:9px;color:var(--muted);line-height:1.5;">
+      These five conditions would each challenge the stagflation thesis. <span style="color:var(--amber)">NOT MET</span> = thesis intact. <span style="color:var(--green)">TRIGGERED</span> = thesis under review.
+    </div>
+    <div id="triggersContent">
+      <div class="trigger-item"><div class="skel" style="height:10px;width:200px;margin-bottom:8px"></div><div class="skel" style="height:8px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:80%"></div></div>
+      <div class="trigger-item"><div class="skel" style="height:10px;width:200px;margin-bottom:8px"></div><div class="skel" style="height:8px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:80%"></div></div>
+      <div class="trigger-item"><div class="skel" style="height:10px;width:200px;margin-bottom:8px"></div><div class="skel" style="height:8px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:80%"></div></div>
+    </div>
+
+  </div><!-- /tab-credit -->
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- NEWS TAB                                              -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-news">
+
+    <div class="section-header">
+      <div class="section-title" style="color:var(--red)">⬥ MARKET DRIVING</div>
+      <div class="section-line"></div>
+      <div class="section-meta" id="drivingTimestamp">--</div>
+    </div>
+    <div id="drivingContent">
+      <a class="driving-item" href="#" style="border-left:3px solid var(--red)"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:60%"></div></div><div></div></a>
+      <a class="driving-item" href="#" style="border-left:3px solid var(--amber)"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:70%"></div></div><div></div></a>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">ECONOMIC CALENDAR</div>
+      <div class="section-line"></div>
+      <div class="section-meta">NEXT 7 DAYS — APPROXIMATE</div>
+    </div>
+    <div id="calendarContent">
+      <div class="cal-day"><div class="cal-day-hdr"><div class="skel" style="height:9px;width:200px"></div></div><div class="cal-event"><div class="skel" style="height:9px;width:50px"></div><div class="skel" style="height:10px;width:150px"></div><div class="skel" style="height:16px;width:40px"></div></div></div>
+    </div>
+
     <div class="section-header">
       <div class="section-title">NEWS FEED</div>
       <div class="section-line"></div>
       <div class="section-meta" id="newsTimestamp">--</div>
     </div>
     <div id="newsContent" class="news-list">
-      <div class="news-item"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:10px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:70%"></div></div><div class="skel" style="height:10px"></div></div>
-      <div class="news-item"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:10px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60%"></div></div><div class="skel" style="height:10px"></div></div>
-      <div class="news-item"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:10px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:80%"></div></div><div class="skel" style="height:10px"></div></div>
+      <a class="news-item" href="#"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:10px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:70%"></div></div><div class="skel" style="height:10px"></div></a>
+      <a class="news-item" href="#"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:10px;margin-bottom:4px"></div><div class="skel" style="height:10px;width:60%"></div></div><div class="skel" style="height:10px"></div></a>
     </div>
-  </div>
 
-</div><!-- /.terminal -->
+  </div><!-- /tab-news -->
+
+</div><!-- /terminal -->
 
 <script>
-// ── CONFIG ────────────────────────────────────────────────────
-const REFRESH_INTERVAL = 60; // seconds
+// ════════════════════════════════════════════════════════════
+// CONFIG & STATE
+// ════════════════════════════════════════════════════════════
+const REFRESH_INTERVAL = 60;
 let refreshTimer = REFRESH_INTERVAL;
-let refreshInterval = null;
 let countdownInterval = null;
+let autoRefreshInterval = null;
+const state = { currentTab: 'overview', tabLoaded: {} };
 
-// ── CLOCK ─────────────────────────────────────────────────────
+const LEADING_IDS  = new Set(['ism_proxy','houst','icsa','jolts','umich','t5yie','t10yie']);
+const LAGGING_IDS  = new Set(['gdp','cpi','pce','unemployment','retail','savings','cs_hpi','cc_delinq']);
+
+// ════════════════════════════════════════════════════════════
+// CLOCK
+// ════════════════════════════════════════════════════════════
 function updateClock() {
-  const now = new Date();
   document.getElementById('clock').textContent =
-    now.toLocaleTimeString('en-US', { hour12: false,
-      hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-// ── STATUS ────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+// STATUS & REFRESH BAR
+// ════════════════════════════════════════════════════════════
 function setStatus(state) {
   const dot  = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
-  dot.className = 'status-dot ' + (state === 'ok' ? '' : state);
+  dot.className = 'status-dot' + (state === 'ok' ? '' : ' ' + state);
   text.textContent = state === 'ok' ? 'LIVE' : state === 'loading' ? 'LOADING' : 'ERROR';
   text.style.color = state === 'error' ? 'var(--red)' : '';
 }
 
-// ── REFRESH BAR ───────────────────────────────────────────────
 function startRefreshCountdown() {
   refreshTimer = REFRESH_INTERVAL;
-  const bar = document.getElementById('refreshBar');
+  const bar   = document.getElementById('refreshBar');
   const label = document.getElementById('refreshLabel');
   if (countdownInterval) clearInterval(countdownInterval);
   countdownInterval = setInterval(() => {
     refreshTimer = Math.max(0, refreshTimer - 1);
-    const pct = (refreshTimer / REFRESH_INTERVAL) * 100;
-    bar.style.width = pct + '%';
+    bar.style.width = (refreshTimer / REFRESH_INTERVAL * 100) + '%';
     label.textContent = 'REFRESH ' + refreshTimer + 's';
   }, 1000);
 }
 
-// ── UTILS ─────────────────────────────────────────────────────
-function colorClass(val, positiveIsGood = true) {
-  if (val === null || val === undefined || isNaN(val)) return 'c-muted';
-  if (positiveIsGood) return val > 0 ? 'c-green' : val < 0 ? 'c-red' : 'c-muted';
-  return val > 0 ? 'c-red' : val < 0 ? 'c-green' : 'c-muted';
-}
-
-function arrow(val) {
-  if (val === null || val === undefined || isNaN(val)) return '';
-  return val > 0 ? ' ▲' : val < 0 ? ' ▼' : ' –';
-}
-
+// ════════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════════
 function fmt(val, decimals = 2, suffix = '') {
-  if (val === null || val === undefined) return '--';
+  if (val === null || val === undefined || isNaN(+val)) return '--';
   return Number(val).toFixed(decimals) + suffix;
+}
+
+function fmtN(val, decimals = 2) {
+  if (val === null || val === undefined || isNaN(+val)) return '--';
+  return Number(val).toLocaleString('en-US', {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
+}
+
+function colorClass(val, positiveIsGood = true) {
+  if (val === null || val === undefined || isNaN(+val)) return 'c-muted';
+  if (positiveIsGood) return +val > 0 ? 'c-green' : +val < 0 ? 'c-red' : 'c-muted';
+  return +val > 0 ? 'c-red' : +val < 0 ? 'c-green' : 'c-muted';
+}
+
+function dirArrow(val) {
+  if (val === null || val === undefined) return '';
+  if (+val > 0.005)  return '▲';
+  if (+val < -0.005) return '▼';
+  return '→';
 }
 
 function fmtTime(iso) {
   if (!iso) return '--';
-  try {
-    return new Date(iso).toLocaleTimeString('en-US',
-      { hour: '2-digit', minute: '2-digit', hour12: false });
-  } catch { return '--'; }
+  try { return new Date(iso).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}); }
+  catch { return '--'; }
 }
 
 function fmtRelTime(iso) {
   if (!iso) return '--';
   try {
     const diff = Math.floor((Date.now() - new Date(iso)) / 60000);
-    if (diff < 1)  return 'JUST NOW';
+    if (diff < 1) return 'JUST NOW';
     if (diff < 60) return diff + 'MIN AGO';
-    const h = Math.floor(diff / 60);
-    return h + 'HR AGO';
+    if (diff < 1440) return Math.floor(diff/60) + 'HR AGO';
+    return Math.floor(diff/1440) + 'D AGO';
   } catch { return '--'; }
 }
 
-// ── FETCH WRAPPER ─────────────────────────────────────────────
+function setTimestamp(id, ts) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = ts ? 'AS OF ' + fmtTime(ts) : '--';
+}
+
+function setEl(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+function renderError(id, msg) {
+  setEl(id, `<div class="error-row">⚠ ${msg}</div>`);
+}
+
 async function apiFetch(endpoint) {
   const res = await fetch(endpoint, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
 
-// ── RENDER: REGIME ────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+// TAB SYSTEM
+// ════════════════════════════════════════════════════════════
+function switchTab(tabId) {
+  state.currentTab = tabId;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tabId));
+  if (!state.tabLoaded[tabId]) {
+    state.tabLoaded[tabId] = true;
+    fetchTab(tabId);
+  }
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+function fetchTab(tabId) {
+  switch (tabId) {
+    case 'overview': return fetchOverview();
+    case 'markets':  return fetchMarkets();
+    case 'economy':  return fetchEconomy();
+    case 'credit':   return fetchCredit();
+    case 'news':     return fetchNews();
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER: OVERVIEW
+// ════════════════════════════════════════════════════════════
 function renderRegime(data) {
   const label       = data.label || 'UNKNOWN';
   const confidence  = data.confidence_score ?? null;
   const indicators  = data.indicator_breakdown || [];
   const risks       = data.key_risks || [];
   const positioning = data.asset_class_positioning || [];
-  const ts          = data.timestamp || null;
 
-  document.getElementById('regimeTimestamp').textContent =
-    ts ? 'AS OF ' + fmtTime(ts) : '--';
+  setTimestamp('regimeTimestamp', data.timestamp);
 
-  // Build indicator cards
   const indCards = indicators.map(ind => {
-    const cls = ind.signal === 'BULLISH' ? 'c-green'
-              : ind.signal === 'BEARISH' ? 'c-red' : 'c-amber';
-    return `
-      <div class="regime-ind">
-        <div class="regime-ind-name">${ind.name || ''}</div>
-        <div class="regime-ind-val ${cls}">${ind.value !== undefined ? ind.value : '--'}</div>
-        <div class="regime-ind-signal ${cls}">${ind.signal || ''}</div>
-      </div>`;
+    const cls = ind.signal === 'BULLISH' ? 'c-green' : ind.signal === 'BEARISH' ? 'c-red' : 'c-amber';
+    return `<div class="regime-ind">
+      <div class="regime-ind-name">${ind.name||''}</div>
+      <div class="regime-ind-val ${cls}">${ind.value !== undefined ? ind.value : '--'}</div>
+      <div class="regime-ind-signal ${cls}">${ind.signal||''}</div>
+    </div>`;
   }).join('');
 
-  // Build risks
   const riskItems = risks.length
     ? risks.map(r => `<div class="regime-risk-item">▸ ${r}</div>`).join('')
     : '<div class="c-muted" style="font-size:10px">NO FLAGS</div>';
 
-  // Build positioning
   const posItems = positioning.map(p => {
-    const cls = p.stance === 'OW' ? 'OW' : p.stance === 'UW' ? 'UW' : 'N';
-    const prefix = p.stance === 'OW' ? '▲ ' : p.stance === 'UW' ? '▼ ' : '– ';
-    return `<div class="pos-item ${cls}">${prefix}${p.asset_class || ''}</div>`;
+    const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
+    const pre = p.stance==='OW' ? '▲ ' : p.stance==='UW' ? '▼ ' : '– ';
+    return `<div class="pos-item ${cls}">${pre}${p.asset_class||''}</div>`;
   }).join('');
 
-  document.getElementById('regimeContent').innerHTML = `
+  const cssLabel = label.replace(/\s+/g, '-');
+  setEl('regimeContent', `
     <div class="regime-block">
-      <div class="regime-label-wrap">
-        <div class="regime-tag ${label}">${label}</div>
-        <div class="regime-confidence">
-          CONFIDENCE <span>${confidence !== null ? fmt(confidence, 0) + '%' : '--'}</span>
-        </div>
+      <div>
+        <div class="regime-tag ${cssLabel}">${label}</div>
+        <div class="regime-confidence">CONFIDENCE <span>${confidence !== null ? fmt(confidence,0)+'%' : '--'}</span></div>
       </div>
       <div>
-        <div class="regime-indicators">${indCards || '<div class="c-muted">No indicator data</div>'}</div>
+        <div class="regime-indicators">${indCards || '<div class="c-muted">No data</div>'}</div>
         ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid">${posItems}</div></div>` : ''}
       </div>
-      <div class="regime-risks">
+      <div>
         <div class="regime-risks-title">KEY RISKS</div>
         ${riskItems}
       </div>
-    </div>`;
+    </div>`);
 }
 
-// ── RENDER: MACRO ─────────────────────────────────────────────
 function renderMacro(data) {
-  const series = data.series || data;
-  const ts = data.timestamp || null;
-  document.getElementById('macroTimestamp').textContent =
-    ts ? 'AS OF ' + fmtTime(ts) : '--';
+  const series = data.series || [];
+  setTimestamp('macroTimestamp', data.timestamp);
+  if (!series.length) { setEl('macroContent','<div class="error-row">NO MACRO DATA</div>'); return; }
 
-  // Expect array or object of series
-  const items = Array.isArray(series) ? series : Object.values(series);
-  if (!items.length) {
-    document.getElementById('macroContent').innerHTML =
-      '<div class="error-row">NO MACRO DATA</div>';
-    return;
-  }
-
-  const cells = items.map(s => {
+  const cells = series.map(s => {
     const chg = s.change ?? null;
-    const positiveGood = s.positive_is_good !== false;
-    const cls = colorClass(chg, positiveGood);
-    return `
-      <div class="macro-cell">
-        <div class="macro-cell-label">${s.label || s.id || ''}</div>
-        <div class="macro-cell-value ${cls}">${s.current !== undefined && s.current !== null ? fmt(s.current, s.decimals ?? 2) + (s.suffix || '') : '--'}</div>
-        <div class="macro-cell-sub">${s.description || ''}</div>
-        ${chg !== null ? `<div class="macro-cell-change ${cls}">${chg >= 0 ? '▲' : '▼'} ${fmt(Math.abs(chg), s.decimals ?? 2)}${s.suffix || ''} vs PRIOR</div>` : ''}
-      </div>`;
+    const pig = s.positive_is_good !== false;
+    const cls = colorClass(chg, pig);
+    return `<div class="macro-cell">
+      <div class="macro-cell-label">${s.label||s.id||''}</div>
+      <div class="macro-cell-value ${cls}">${s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--'}</div>
+      <div class="macro-cell-sub">${s.description||''}</div>
+      ${chg !== null ? `<div class="macro-cell-change ${cls}">${+chg>=0?'▲':'▼'} ${fmt(Math.abs(chg), s.decimals??2)}${s.suffix||''} vs PRIOR</div>` : ''}
+    </div>`;
   }).join('');
 
-  document.getElementById('macroContent').innerHTML = cells;
+  document.getElementById('macroContent').className = 'macro-grid';
+  setEl('macroContent', cells);
 }
 
-// ── RENDER: YIELDS ────────────────────────────────────────────
 function renderYields(data) {
-  const yields   = data.yields || [];
-  const spreads  = data.spreads || [];
-  const ts       = data.timestamp || null;
-  document.getElementById('yieldsTimestamp').textContent =
-    ts ? 'AS OF ' + fmtTime(ts) : '--';
+  const yields  = data.yields  || [];
+  const spreads = data.spreads || [];
+  setTimestamp('yieldsTimestamp', data.timestamp);
 
-  // Bar chart
-  const maxVal = Math.max(...yields.map(y => Math.abs(y.value || 0)), 0.01);
+  const maxVal = Math.max(...yields.map(y => Math.abs(y.value||0)), 0.01);
   const barHTML = yields.map(y => {
-    const heightPct = Math.max(5, Math.round((Math.abs(y.value || 0) / maxVal) * 100));
-    const inverted  = y.value < 0;
-    return `
-      <div class="yield-bar-wrap">
-        <div class="yield-bar-val ${inverted ? 'c-red' : 'c-green'}">${fmt(y.value, 2)}%</div>
-        <div class="yield-bar ${inverted ? 'inverted' : ''}" style="height:${heightPct}%"></div>
-        <div class="yield-bar-label">${y.label || y.maturity || ''}</div>
-      </div>`;
+    const hp  = Math.max(5, Math.round(Math.abs(y.value||0) / maxVal * 100));
+    const inv = (y.value||0) < 0;
+    return `<div class="yield-bar-wrap">
+      <div class="yield-bar-val ${inv?'c-red':'c-green'}">${fmt(y.value,2)}%</div>
+      <div class="yield-bar ${inv?'inverted':''}" style="height:${hp}%"></div>
+      <div class="yield-bar-label">${y.label||y.maturity||''}</div>
+    </div>`;
   }).join('');
-  document.getElementById('yieldBars').innerHTML = barHTML ||
-    '<div class="c-muted" style="font-size:10px;padding:20px">NO YIELD DATA</div>';
 
-  // Spread table
+  setEl('yieldBars', barHTML || '<div class="c-muted" style="font-size:10px;padding:20px">NO YIELD DATA</div>');
+
   const spreadHTML = spreads.map(sp => {
-    const cls = colorClass(sp.value, false); // inversion is bearish
-    return `
-      <div class="yield-spread-item">
-        <span class="yield-spread-label">${sp.label || ''}</span>
-        <span class="yield-spread-val ${cls}">${fmt(sp.value, 2)}%</span>
-      </div>`;
+    const cls = colorClass(sp.value, false);
+    return `<div class="yield-spread-item">
+      <span class="yield-spread-label">${sp.label||''}</span>
+      <span class="yield-spread-val ${cls}">${fmt(sp.value,2)}%</span>
+    </div>`;
   }).join('');
-  document.getElementById('yieldSpreads').innerHTML = spreadHTML ||
-    '<div class="c-muted" style="font-size:10px">NO SPREAD DATA</div>';
+
+  setEl('yieldSpreads', spreadHTML || '<div class="c-muted" style="font-size:10px">NO SPREAD DATA</div>');
 }
 
-// ── RENDER: NEWS ──────────────────────────────────────────────
-function renderNews(data) {
-  const articles = data.articles || data;
-  const ts = data.timestamp || null;
-  document.getElementById('newsTimestamp').textContent =
-    ts ? 'UPDATED ' + fmtRelTime(ts) : '--';
-
-  if (!articles.length) {
-    document.getElementById('newsContent').innerHTML =
-      '<div class="error-row">NO NEWS DATA</div>';
-    return;
-  }
-
-  const items = articles.map(a => `
-    <a class="news-item" href="${a.url || '#'}" target="_blank" rel="noopener">
-      <div class="news-time">${fmtRelTime(a.publishedAt || a.timestamp)}</div>
-      <div class="news-headline">${a.title || a.headline || ''}</div>
-      <div class="news-source">${(a.source?.name || a.source || '').toUpperCase()}</div>
-    </a>`).join('');
-
-  document.getElementById('newsContent').innerHTML = items;
-}
-
-// ── RENDER: ERROR ─────────────────────────────────────────────
-function renderError(id, msg) {
-  const el = document.getElementById(id);
-  if (el) el.innerHTML = `<div class="error-row">⚠ ${msg}</div>`;
-}
-
-// ── FETCH ALL ─────────────────────────────────────────────────
-async function fetchAll() {
+async function fetchOverview() {
   setStatus('loading');
   let anyError = false;
-
-  const jobs = [
-    apiFetch('/api/regime')
-      .then(renderRegime)
-      .catch(e => { renderError('regimeContent', 'REGIME UNAVAILABLE — ' + e.message); anyError = true; }),
-
-    apiFetch('/api/macro')
-      .then(renderMacro)
-      .catch(e => { renderError('macroContent', 'MACRO DATA UNAVAILABLE — ' + e.message); anyError = true; }),
-
-    apiFetch('/api/yields')
-      .then(renderYields)
-      .catch(e => { renderError('yieldsContent', 'YIELD DATA UNAVAILABLE — ' + e.message); anyError = true; }),
-
-    apiFetch('/api/news')
-      .then(renderNews)
-      .catch(e => { renderError('newsContent', 'NEWS UNAVAILABLE — ' + e.message); anyError = true; }),
-  ];
-
-  await Promise.allSettled(jobs);
+  await Promise.allSettled([
+    apiFetch('/api/regime').then(renderRegime).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
+    apiFetch('/api/macro').then(renderMacro).catch(e => { renderError('macroContent','MACRO UNAVAILABLE — '+e.message); anyError=true; }),
+    apiFetch('/api/yields').then(renderYields).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
+  ]);
   setStatus(anyError ? 'error' : 'ok');
   startRefreshCountdown();
 }
 
-// ── AUTO REFRESH ──────────────────────────────────────────────
-function startAutoRefresh() {
-  if (refreshInterval) clearInterval(refreshInterval);
-  refreshInterval = setInterval(fetchAll, REFRESH_INTERVAL * 1000);
+// ════════════════════════════════════════════════════════════
+// RENDER: MARKETS
+// ════════════════════════════════════════════════════════════
+function signalBadgeClass(signal) {
+  const s = (signal||'').toUpperCase();
+  if (s.includes('RISK ON') || s.includes('POSITIVE') || s.includes('BULLISH')) return 'green';
+  if (s.includes('RISK OFF') || s.includes('NEGATIVE') || s.includes('BEARISH')) return 'red';
+  if (s.includes('NEUTRAL') || s.includes('MIXED')) return 'muted';
+  return 'amber';
 }
 
-// ── INIT ──────────────────────────────────────────────────────
-fetchAll();
-startAutoRefresh();
+function sectorBg(pct) {
+  if (pct == null) return 'var(--bg3)';
+  if (pct > 3)    return 'rgba(0,217,100,0.22)';
+  if (pct > 1)    return 'rgba(0,217,100,0.12)';
+  if (pct > 0.2)  return 'rgba(0,217,100,0.06)';
+  if (pct > -0.2) return 'rgba(245,158,11,0.09)';
+  if (pct > -1)   return 'rgba(239,68,68,0.06)';
+  if (pct > -3)   return 'rgba(239,68,68,0.14)';
+  return 'rgba(239,68,68,0.24)';
+}
+
+function sectorFgColor(pct) {
+  if (pct == null) return 'var(--muted)';
+  if (pct > 0.2)  return 'var(--green)';
+  if (pct > -0.2) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function renderMarkets(data) {
+  setTimestamp('marketsTimestamp', data.timestamp);
+
+  // Futures
+  const futures = data.futures || [];
+  const futuresCells = futures.map(f => {
+    const cls = colorClass(f.pct_change, true);
+    const arrow = f.direction === 'UP' ? '▲' : f.direction === 'DOWN' ? '▼' : '→';
+    return `<div class="futures-cell">
+      <div class="futures-label">${f.label||''}</div>
+      <div class="futures-price ${cls}">${f.price != null ? fmtN(f.price,2) : '--'}</div>
+      <div class="futures-change ${cls}">${arrow} ${f.change != null ? fmt(Math.abs(f.change),2) : '--'} (${f.pct_change != null ? fmt(f.pct_change,2) : '--'}%)</div>
+    </div>`;
+  }).join('');
+
+  const fsig = data.futures_signal || 'NEUTRAL';
+  const fsigCls = signalBadgeClass(fsig);
+  setEl('futuresContent', `
+    <div class="futures-strip">${futuresCells}</div>
+    <div class="signal-bar">
+      <div class="signal-badge ${fsigCls}">${fsig}</div>
+      <div class="signal-detail">${data.futures_detail||''}</div>
+    </div>`);
+
+  // Indices
+  const indices = data.indices || [];
+  const indexCells = indices.map(idx => {
+    const dayCls = colorClass(idx.pct_change, true);
+    const ytdCls = colorClass(idx.ytd_pct, true);
+    const arrow = idx.direction === 'UP' ? '▲' : idx.direction === 'DOWN' ? '▼' : '→';
+    return `<div class="index-cell">
+      <div class="index-abbr">${idx.abbr||''}</div>
+      <div class="index-label">${idx.label||''}</div>
+      <div class="index-price ${dayCls}">${idx.price != null ? fmtN(idx.price,2) : '--'}</div>
+      <div class="index-day ${dayCls}">${arrow} ${idx.change != null ? fmt(Math.abs(idx.change),2) : '--'} (${idx.pct_change != null ? fmt(idx.pct_change,2) : '--'}%)</div>
+      <div class="index-ytd">YTD <span class="${ytdCls}">${idx.ytd_pct != null ? (idx.ytd_pct>=0?'+':'')+fmt(idx.ytd_pct,2)+'%' : '--'}</span></div>
+    </div>`;
+  }).join('');
+  setEl('indicesContent', indexCells || '<div class="error-row">NO INDEX DATA</div>');
+  document.getElementById('indicesContent').className = 'indices-grid';
+
+  // Sectors
+  const sectors = data.sectors || [];
+  const ssig = data.sector_signal || '';
+  const ssigCls = signalBadgeClass(ssig);
+  setEl('sectorSignalBar', `
+    <div class="signal-badge ${ssigCls}">${ssig}</div>
+    <div class="signal-detail">${data.sector_detail||''}</div>`);
+
+  const sectorCells = sectors.map(s => {
+    const pct = s.pct_change;
+    const fg  = sectorFgColor(pct);
+    const bg  = sectorBg(pct);
+    const pctStr = pct != null ? (pct>=0?'+':'')+fmt(pct,2)+'%' : '--';
+    return `<div class="sector-cell" style="background:${bg}">
+      <div class="sector-cell-label" style="color:${fg}">${s.short||s.label||''}</div>
+      <div class="sector-cell-pct" style="color:${fg}">${pctStr}</div>
+      <div class="sector-cell-ticker">${s.symbol||''}</div>
+    </div>`;
+  }).join('');
+  setEl('sectorContent', sectorCells || '<div class="error-row">NO SECTOR DATA</div>');
+  document.getElementById('sectorContent').className = 'sector-grid';
+
+  // VIX
+  const vix = data.vix || {};
+  const vixVal = vix.value;
+  const vixPct = vixVal != null ? Math.min(100, vixVal / 50 * 100) : 0;
+  const vixCls = vix.color === 'green' ? 'c-green' : vix.color === 'red' ? 'c-red' : 'c-amber';
+  const vixBadgeBorder = vix.color === 'green' ? 'var(--green)' : vix.color === 'red' ? 'var(--red)' : 'var(--amber)';
+  const vixArrow = vix.direction === 'UP' ? '▲' : vix.direction === 'DOWN' ? '▼' : '→';
+  setEl('vixContent', `
+    <div class="vix-wrap">
+      <div class="vix-header">
+        <div class="vix-value ${vixCls}">${vixVal != null ? fmt(vixVal,2) : '--'}</div>
+        <div class="vix-change ${vixCls}">${vix.change != null ? vixArrow+' '+fmt(Math.abs(vix.change),2) : ''}</div>
+        <div class="vix-level-badge" style="border-color:${vixBadgeBorder};color:${vixBadgeBorder}">${vix.label||'--'}</div>
+      </div>
+      <div class="vix-track">
+        <div class="vix-marker" style="left:${vixPct}%"></div>
+      </div>
+      <div class="vix-scale">
+        <span>0</span><span style="color:var(--green)">12 COMPLACENT</span><span style="color:var(--green)">17 CALM</span>
+        <span style="color:var(--amber)">22 CAUTIOUS</span><span style="color:var(--amber)">28 FEARFUL</span>
+        <span style="color:var(--red)">35 PANIC</span><span style="color:var(--red-dim)">50 EXTREME</span>
+      </div>
+      <div class="vix-description">${vix.description||''}</div>
+    </div>`);
+
+  // Commodities
+  const commodities = data.commodities || [];
+  const commodCells = commodities.map(c => {
+    const cls = colorClass(c.pct_change, true);
+    const arrow = c.direction === 'UP' ? '▲' : c.direction === 'DOWN' ? '▼' : '→';
+    const dec = c.decimals ?? 2;
+    return `<div class="commod-cell">
+      <div class="commod-label">${c.label||''}</div>
+      <div class="commod-price ${cls}">${c.price != null ? fmt(c.price, dec) : '--'}</div>
+      <div class="commod-change ${cls}">${arrow} ${c.pct_change != null ? fmt(c.pct_change,2)+'%' : '--'}</div>
+      <div class="commod-suffix">${c.suffix||''}</div>
+    </div>`;
+  }).join('');
+  setEl('commodContent', commodCells || '<div class="error-row">NO COMMODITY DATA</div>');
+  document.getElementById('commodContent').className = 'commod-grid';
+
+  // Currencies
+  const currencies = data.currencies || [];
+  const dxyVal = currencies.find(c => c.label==='DXY')?.price;
+  const dSig   = data.dollar_signal || '';
+  const dDetail = data.dollar_detail || '';
+  const currCells = currencies.map(c => {
+    const cls   = colorClass(c.pct_change, true);
+    const arrow = c.direction === 'UP' ? '▲' : c.direction === 'DOWN' ? '▼' : '→';
+    const dec   = c.decimals ?? 2;
+    const extraHTML = c.label === 'DXY'
+      ? `<div class="currency-signal">${dSig ? '<strong>'+dSig+'</strong> — ' : ''}${dDetail}</div>`
+      : `<div class="currency-signal">${c.description||''}</div>`;
+    return `<div class="currency-cell">
+      <div class="currency-label">${c.label||''}</div>
+      <div class="currency-price ${cls}">${c.price != null ? fmt(c.price, dec) : '--'}</div>
+      <div class="currency-change ${cls}">${arrow} ${c.change != null ? fmt(Math.abs(c.change),dec) : '--'} (${c.pct_change != null ? fmt(c.pct_change,2) : '--'}%)</div>
+      ${extraHTML}
+    </div>`;
+  }).join('');
+  setEl('currencyContent', currCells || '<div class="error-row">NO FX DATA</div>');
+  document.getElementById('currencyContent').className = 'currency-grid';
+}
+
+async function fetchMarkets() {
+  setStatus('loading');
+  try {
+    const data = await apiFetch('/api/market');
+    renderMarkets(data);
+    setStatus('ok');
+  } catch(e) {
+    renderError('futuresContent', 'MARKET DATA UNAVAILABLE — ' + e.message);
+    setStatus('error');
+  }
+  startRefreshCountdown();
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER: ECONOMY
+// ════════════════════════════════════════════════════════════
+function indicatorTypeBadge(id) {
+  if (LEADING_IDS.has(id))  return '<span class="ind-type-badge leading">LEAD</span>';
+  if (LAGGING_IDS.has(id))  return '<span class="ind-type-badge lagging">LAG</span>';
+  return '';
+}
+
+function signalColor(signal) {
+  if (!signal) return 'c-muted';
+  const s = signal.toUpperCase();
+  if (['STRONG','HEALTHY','LOW','VERY LOW','TIGHT','BELOW TREND','DEFLATION'].some(x => s.includes(x))) return 'c-green';
+  if (['CRITICAL','HIGH','CRISIS','CONTRACTION','DISTRESSED','VERY HIGH'].some(x => s.includes(x))) return 'c-red';
+  if (['ELEVATED','STRESSED','ABOVE TREND'].some(x => s.includes(x))) return 'c-amber';
+  return 'c-muted';
+}
+
+function scorecardCell(s) {
+  const pig = s.positive_is_good;
+  const cls = (pig === true)  ? colorClass(s.change, true)
+            : (pig === false) ? colorClass(s.change, false)
+            : 'c-muted';
+  const valStr = s.current != null ? fmt(s.current, s.decimals??2) + (s.suffix||'') : '--';
+  const arrow = s.change != null ? dirArrow(s.change) : '';
+  const sigCls = signalColor(s.signal);
+  return `<div class="scorecard-cell">
+    <div class="scorecard-label">${s.label||''} ${indicatorTypeBadge(s.id)}</div>
+    <div class="scorecard-value ${cls}">${valStr}<span class="scorecard-arrow ${cls}">${arrow}</span></div>
+    <div class="scorecard-signal ${sigCls}">${s.signal||''}</div>
+    <div class="scorecard-desc">${s.description||''}</div>
+    ${s.interpretation ? `<div class="scorecard-interp">${s.interpretation}</div>` : ''}
+  </div>`;
+}
+
+function renderRecession(prob, signal, color, interp) {
+  const fillColor = color === 'green' ? 'var(--green)' : color === 'red' ? 'var(--red)' : 'var(--amber)';
+  const borderColor = fillColor;
+  const probCls = color === 'green' ? 'c-green' : color === 'red' ? 'c-red' : 'c-amber';
+  setEl('recessionContent', `
+    <div class="recession-wrap">
+      <div class="recession-header">
+        <div class="recession-pct ${probCls}">${prob ?? '--'}%</div>
+        <div class="recession-signal" style="border-color:${borderColor};color:${borderColor}">${signal||'--'}</div>
+      </div>
+      <div class="recession-track">
+        <div class="recession-fill" style="width:${prob??0}%;background:${fillColor}"></div>
+      </div>
+      <div class="recession-interp">${interp||''}</div>
+    </div>`);
+}
+
+function renderKShape(ks) {
+  if (!ks) { setEl('kshapeContent','<div class="error-row">K-SHAPE DATA UNAVAILABLE</div>'); return; }
+  const upper = ks.upper || {};
+  const lower = ks.lower || {};
+
+  function kCell(data, title) {
+    const score = data.score ?? 50;
+    const sig   = data.signal || '--';
+    const sigCls = sig === 'HEALTHY' ? 'c-green' : sig === 'STRESSED' || sig === 'DISTRESSED' ? 'c-red' : 'c-amber';
+    const fillColor = sig === 'HEALTHY' ? 'var(--green)' : sig === 'STRESSED' || sig === 'DISTRESSED' ? 'var(--red)' : 'var(--amber)';
+    const inds = (data.indicators || []).map(i => `<div class="kshape-ind">▸ ${i}</div>`).join('');
+    return `<div class="kshape-cell">
+      <div class="kshape-title">${title}</div>
+      <div class="kshape-score ${sigCls}">${score}<span style="font-size:14px;color:var(--muted)">/100</span></div>
+      <div class="kshape-signal ${sigCls}">${sig}</div>
+      <div class="kshape-track"><div class="kshape-fill" style="width:${score}%;background:${fillColor}"></div></div>
+      ${inds || '<div class="c-muted" style="font-size:9px">No signal data</div>'}
+    </div>`;
+  }
+
+  setEl('kshapeContent', `
+    <div class="kshape-grid">
+      ${kCell(upper, 'UPPER INCOME HEALTH')}
+      ${kCell(lower, 'LOWER INCOME STRESS INDICATORS')}
+    </div>
+    ${ks.interpretation ? `<div class="kshape-interp">${ks.interpretation}</div>` : ''}`);
+}
+
+async function fetchEconomy() {
+  setStatus('loading');
+  try {
+    const data = await apiFetch('/api/economy');
+    setTimestamp('economyTimestamp', data.timestamp);
+
+    ['growth','inflation','labor','consumer'].forEach(cat => {
+      const items = data[cat] || [];
+      const html = items.length ? items.map(scorecardCell).join('') : '<div class="error-row">NO DATA</div>';
+      const el = document.getElementById('scorecard-' + cat);
+      if (el) { el.className = 'scorecard-grid'; el.innerHTML = html; }
+    });
+
+    renderRecession(data.recession_probability, data.recession_signal, data.recession_color, data.recession_interpretation);
+    renderKShape(data.k_shape);
+    setStatus('ok');
+  } catch(e) {
+    ['scorecard-growth','scorecard-inflation','scorecard-labor','scorecard-consumer','recessionContent','kshapeContent'].forEach(id => renderError(id, 'UNAVAILABLE — ' + e.message));
+    setStatus('error');
+  }
+  startRefreshCountdown();
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER: CREDIT
+// ════════════════════════════════════════════════════════════
+function spreadContextBar(value, maxBp, zones) {
+  if (value == null) return '';
+  const pct = Math.min(100, Math.max(0, value / maxBp * 100));
+  const zoneHTML = zones.map(z => {
+    const left = z.start / maxBp * 100;
+    const width = (z.end - z.start) / maxBp * 100;
+    return `<div class="spread-ctx-zone" style="left:${left}%;width:${width}%;background:${z.color};border-radius:${z.first?'2px 0 0 2px':z.last?'0 2px 2px 0':'0'}"></div>`;
+  }).join('');
+  const labels = zones.map(z => `<span style="color:${z.labelColor||'var(--muted)'}">${z.label}</span>`).join('');
+  return `<div class="spread-ctx-wrap">
+    <div class="spread-ctx-lbl">HISTORICAL CONTEXT (0–${maxBp}bp)</div>
+    <div class="spread-ctx-track">
+      ${zoneHTML}
+      <div class="spread-ctx-marker" style="left:${pct}%"></div>
+    </div>
+    <div class="spread-ctx-labels">${labels}</div>
+  </div>`;
+}
+
+function renderSpreads(spreads) {
+  if (!spreads || !spreads.length) { setEl('spreadsContent','<div class="error-row">NO CREDIT DATA</div>'); return; }
+  const cells = spreads.map(s => {
+    const sigBorder = s.signal_color === 'green' ? 'var(--green)' : s.signal_color === 'red' ? 'var(--red)' : 'var(--amber)';
+    const valCls    = s.signal_color === 'green' ? 'c-green' : s.signal_color === 'red' ? 'c-red' : 'c-amber';
+    const chgCls    = colorClass(s.change, false);
+    const arrow     = s.direction === 'UP' ? '▲' : s.direction === 'DOWN' ? '▼' : '→';
+
+    const isHY = s.id === 'hy_oas';
+    const maxBp = isHY ? 900 : 350;
+    const ctxZones = isHY
+      ? [{start:0,end:300,color:'rgba(0,217,100,0.2)',label:'<300 TIGHT',labelColor:'var(--green)',first:true},
+         {start:300,end:450,color:'rgba(245,158,11,0.2)',label:'300-450 NORMAL',labelColor:'var(--amber)'},
+         {start:450,end:600,color:'rgba(239,68,68,0.18)',label:'450-600 WIDE',labelColor:'var(--red)'},
+         {start:600,end:900,color:'rgba(127,29,29,0.3)',label:'>600 CRISIS',labelColor:'var(--red-dim)',last:true}]
+      : [{start:0,end:80,color:'rgba(0,217,100,0.2)',label:'<80 TIGHT',labelColor:'var(--green)',first:true},
+         {start:80,end:130,color:'rgba(245,158,11,0.2)',label:'80-130 NORMAL',labelColor:'var(--amber)'},
+         {start:130,end:200,color:'rgba(239,68,68,0.18)',label:'130-200 WIDE',labelColor:'var(--red)'},
+         {start:200,end:350,color:'rgba(127,29,29,0.3)',label:'>200 CRISIS',labelColor:'var(--red-dim)',last:true}];
+
+    return `<div class="spread-cell">
+      <div class="spread-lbl">${s.label||''} — ${s.description||''}</div>
+      <div class="spread-value ${valCls}">${s.value != null ? fmtN(s.value,0) : '--'}<span class="spread-unit-txt">bp</span></div>
+      <div class="spread-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),0)+'bp vs prior' : 'No change data'}</div>
+      <div class="spread-signal" style="border-color:${sigBorder};color:${sigBorder}">${s.signal||''}</div>
+      <div class="spread-interp">${s.interpretation||''}</div>
+      ${spreadContextBar(s.value, maxBp, ctxZones)}
+    </div>`;
+  }).join('');
+  setEl('spreadsContent', cells);
+  document.getElementById('spreadsContent').className = 'spread-grid';
+}
+
+function renderTipsPanel(breakevens, realYields) {
+  const all = [...(breakevens||[]), ...(realYields||[])];
+  if (!all.length) { setEl('breakevensContent','<div class="error-row">NO TIPS DATA</div>'); return; }
+  const cells = all.map(s => {
+    const chgCls = colorClass(s.change, null);
+    const arrow  = s.direction === 'UP' ? '▲' : s.direction === 'DOWN' ? '▼' : '→';
+    const isBreakeven = s.id && s.id.includes('yie');
+    const valCls = isBreakeven ? 'c-amber' : 'c-blue';
+    return `<div class="tips-cell">
+      <div class="tips-label">${s.label||''}</div>
+      <div class="tips-value ${valCls}">${s.value != null ? fmt(s.value,2) : '--'}%</div>
+      <div class="tips-change ${chgCls}">${arrow} ${s.change != null ? fmt(Math.abs(s.change),3)+'% vs prior' : '--'}</div>
+      ${s.interpretation ? `<div class="tips-interp">${s.interpretation}</div>` : ''}
+    </div>`;
+  }).join('');
+  setEl('breakevensContent', cells);
+  document.getElementById('breakevensContent').className = 'tips-grid';
+}
+
+function renderCreditCurve(yieldsData) {
+  const yields  = (yieldsData||{}).yields  || [];
+  const spreads = (yieldsData||{}).spreads || [];
+  const curve   = (yieldsData||{}).curve_status || 'UNKNOWN';
+
+  if (!yields.length) { setEl('creditCurveContent','<div class="error-row">NO YIELD CURVE DATA</div>'); return; }
+
+  const rows = yields.map(y => {
+    const cls = colorClass(y.change, null);
+    const arrow = y.direction === 'UP' ? '▲' : y.direction === 'DOWN' ? '▼' : '→';
+    return `<tr>
+      <td>${y.label||y.maturity||''}</td>
+      <td class="${y.value != null && y.value < 0 ? 'c-red':'c-green'}">${y.value != null ? fmt(y.value,2)+'%' : '--'}</td>
+      <td class="${cls}" style="font-size:9px">${y.prior != null ? fmt(y.prior,2)+'%' : '--'}</td>
+      <td class="${cls}">${arrow} ${y.change != null ? fmt(Math.abs(y.change),3)+'%' : '--'}</td>
+    </tr>`;
+  }).join('');
+
+  const curveColor = curve === 'INVERTED' ? 'var(--red)' : curve === 'FLAT' ? 'var(--amber)' : 'var(--green)';
+  const spreadItems = spreads.map(sp => {
+    const cls = colorClass(sp.value, false);
+    return `<div class="curve-spread-item"><span class="curve-spread-lbl">${sp.label}</span><span class="${cls}" style="font-weight:700">${sp.value != null ? fmt(sp.value,3)+'%' : '--'}</span></div>`;
+  }).join('');
+
+  setEl('creditCurveContent', `
+    <div class="curve-table-wrap">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <span style="font-size:8px;color:var(--muted);letter-spacing:0.1em">CURVE STATUS</span>
+        <span style="font-size:10px;font-weight:700;color:${curveColor}">${curve}</span>
+      </div>
+      <table class="curve-table">
+        <thead><tr>
+          <th>MATURITY</th><th>YIELD</th><th>PRIOR</th><th>CHG</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="curve-spreads">${spreadItems}</div>
+    </div>`);
+}
+
+function renderTriggers(triggers) {
+  if (!triggers || !triggers.length) { setEl('triggersContent','<div class="error-row">NO TRIGGER DATA</div>'); return; }
+  const html = triggers.map(t => {
+    const status  = (t.status||'').toUpperCase();
+    const isTriggered  = status === 'TRIGGERED';
+    const isApproach   = status === 'APPROACHING' || (status.startsWith('MET') && !isTriggered);
+    const isManual     = status === 'MANUAL INPUT';
+    const statusCls = isTriggered ? 'triggered' : isApproach ? 'approaching' : isManual ? 'manual' : status === 'ERROR' ? 'error' : 'not-met';
+
+    const progress = t.progress_pct ?? 0;
+    const fillCls  = isTriggered ? 'triggered' : isApproach ? 'approaching' : '';
+    const thresholdPct = 100; // threshold is always at 100% of the progress scale
+
+    const valDisplay = t.current_value != null
+      ? `${t.current_value}${t.unit}`
+      : isManual ? 'MANUAL INPUT REQUIRED' : 'NO DATA';
+    const thrDisplay = t.threshold != null ? `${t.threshold}${t.unit} threshold` : '';
+
+    const sustainedTxt = (t.required > 1 && t.current_value != null)
+      ? `<div class="trigger-sustained">${t.sustained_count||0} of ${t.required} required periods met</div>`
+      : '';
+
+    return `<div class="trigger-item">
+      <div class="trigger-header">
+        <div class="trigger-label">${t.full_label||t.label||''}</div>
+        <div class="trigger-status ${statusCls}">${t.status||'--'}</div>
+      </div>
+      ${t.current_value != null ? `
+        <div class="trigger-track">
+          <div class="trigger-fill ${fillCls}" style="width:${Math.min(progress,100)}%"></div>
+          <div class="trigger-threshold-line" style="left:${thresholdPct}%"></div>
+        </div>
+        <div class="trigger-values">
+          <span>CURRENT: <span class="trigger-current">${valDisplay}</span></span>
+          <span>${thrDisplay}</span>
+        </div>
+      ` : `<div style="padding:6px 0;font-size:9px;color:var(--muted)">${isManual ? 'Requires manual input from BDC earnings reports (ARCC, BXSL, FSK).' : 'Data unavailable.'}</div>`}
+      ${sustainedTxt}
+      <div class="trigger-desc">${t.description||''}</div>
+    </div>`;
+  }).join('');
+  setEl('triggersContent', html);
+}
+
+async function fetchCredit() {
+  setStatus('loading');
+  try {
+    const data = await apiFetch('/api/credit');
+    setTimestamp('creditTimestamp', data.timestamp);
+    renderSpreads(data.spreads);
+    renderTipsPanel(data.breakevens, data.real_yields);
+    renderCreditCurve(data.yield_curve);
+    renderTriggers(data.falsification_triggers);
+    setStatus('ok');
+  } catch(e) {
+    ['spreadsContent','breakevensContent','creditCurveContent','triggersContent'].forEach(id => renderError(id, 'UNAVAILABLE — ' + e.message));
+    setStatus('error');
+  }
+  startRefreshCountdown();
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER: NEWS
+// ════════════════════════════════════════════════════════════
+function renderDriving(articles) {
+  const colors = ['var(--red)','var(--amber)','var(--green)'];
+  const labels = ['▶ TOP','▶ 2ND','▶ 3RD'];
+  const icons  = ['🔴','🟡','🟢'];
+  const top    = [...articles].sort((a,b) => (b.score||0)-(a.score||0)).slice(0,3);
+
+  if (!top.length) { setEl('drivingContent','<div class="error-row">NO HIGH-IMPACT NEWS</div>'); return; }
+
+  const items = top.map((a,i) => `
+    <a class="driving-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer" style="border-left:3px solid ${colors[i]}">
+      <div class="driving-rank" style="color:${colors[i]}">${labels[i]}</div>
+      <div>
+        <div class="driving-headline">${a.title||a.headline||''}</div>
+        <div class="driving-meta">${(a.source||'').toUpperCase()} · ${a.relTime||fmtRelTime(a.publishedAt)} · IMPACT ${a.score||0}</div>
+      </div>
+      <div class="driving-icon">${icons[i]}</div>
+    </a>`).join('');
+
+  setEl('drivingContent', items);
+  document.getElementById('drivingTimestamp').textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
+}
+
+function renderCalendar(events) {
+  if (!events || !events.length) { setEl('calendarContent','<div style="padding:14px;font-size:9px;color:var(--muted)">NO UPCOMING EVENTS IN NEXT 7 DAYS</div>'); return; }
+  const html = events.map(day => {
+    const evHTML = day.events.map(ev => `
+      <div class="cal-event">
+        <div class="cal-time">${ev.time||''}</div>
+        <div class="cal-name">${ev.event||''} ${ev.note ? `<span style="font-size:7px;color:var(--muted)">(${ev.note})</span>` : ''}</div>
+        <div class="cal-impact ${ev.impact||'LOW'}">${ev.impact||''}</div>
+      </div>`).join('');
+    return `<div class="cal-day">
+      <div class="cal-day-hdr">
+        <div class="cal-day-name">${day.day_of_week||''}</div>
+        <div class="cal-day-date">${day.day_display||day.date||''}</div>
+      </div>
+      ${evHTML}
+    </div>`;
+  }).join('');
+  setEl('calendarContent', html);
+}
+
+function renderNewsFeed(data) {
+  const articles = data.articles || [];
+  const ts       = data.timestamp || null;
+  document.getElementById('newsTimestamp').textContent = ts ? 'UPDATED ' + fmtRelTime(ts) : '--';
+
+  renderDriving(articles);
+
+  if (!articles.length) { setEl('newsContent','<div class="error-row">NO NEWS DATA</div>'); return; }
+
+  const items = articles.map(a => `
+    <a class="news-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">
+      <div class="news-time">${a.relTime||fmtRelTime(a.publishedAt||a.timestamp)}</div>
+      <div class="news-headline">${a.title||a.headline||''}</div>
+      <div class="news-source">${(a.source||'').toUpperCase()}</div>
+    </a>`).join('');
+
+  setEl('newsContent', items);
+}
+
+async function fetchNews() {
+  setStatus('loading');
+  let anyError = false;
+  await Promise.allSettled([
+    apiFetch('/api/news').then(renderNewsFeed).catch(e => {
+      renderError('drivingContent','NEWS UNAVAILABLE — '+e.message);
+      renderError('newsContent','NEWS UNAVAILABLE — '+e.message);
+      anyError = true;
+    }),
+    apiFetch('/api/calendar').then(d => renderCalendar(d.events||[])).catch(() => {
+      setEl('calendarContent','<div style="padding:14px;font-size:9px;color:var(--muted)">CALENDAR UNAVAILABLE</div>');
+    }),
+  ]);
+  setStatus(anyError ? 'error' : 'ok');
+  startRefreshCountdown();
+}
+
+// ════════════════════════════════════════════════════════════
+// AUTO-REFRESH & INIT
+// ════════════════════════════════════════════════════════════
+autoRefreshInterval = setInterval(() => {
+  fetchTab(state.currentTab);
+  startRefreshCountdown();
+}, REFRESH_INTERVAL * 1000);
+
+// Load overview on start
+state.tabLoaded['overview'] = true;
+fetchOverview();
+startRefreshCountdown();
 </script>
 </body>
 </html>

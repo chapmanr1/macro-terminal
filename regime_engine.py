@@ -1,14 +1,17 @@
 # FILE: regime_engine.py
 # Bloomberg Macro Terminal — Regime Assessment Engine
 # Classifies the current macro environment using live FRED data.
-# Regimes: GOLDILOCKS / REFLATION / OVERHEATING / STAGFLATION_RISK / STAGFLATION / RECESSION
+# Internal regimes: GOLDILOCKS / REFLATION / OVERHEATING / STAGFLATION_RISK / STAGFLATION / RECESSION
+# GOLDILOCKS displays as "STRONG GROWTH". All other labels are unchanged.
+# Thresholds come from config.py and auto-calibrate monthly from live FRED data.
 
 import os
 import requests
 import logging
 from datetime import datetime, timedelta
-from functools import lru_cache
 import time
+
+from config import get_thresholds, REGIME_LABELS, REGIME_DESCRIPTIONS, POSITIONING
 
 log = logging.getLogger(__name__)
 
@@ -19,95 +22,14 @@ CACHE_TTL    = 3600  # seconds — refresh FRED data every 1 hour
 
 # ── FRED SERIES IDs ───────────────────────────────────────────
 SERIES = {
-    "cpi_yoy":        "CPIAUCSL",    # CPI All Urban Consumers (MoM → we calc YoY)
-    "pce_yoy":        "PCEPILFE",    # Core PCE Price Index
-    "unemployment":   "UNRATE",      # Unemployment Rate
-    "gdp_growth":     "GDPC1",       # Real GDP (Quarterly)
-    "fed_funds":      "FEDFUNDS",    # Effective Fed Funds Rate
-    "t10y2y":         "T10Y2Y",      # 10Y-2Y Treasury Spread (FRED calculated)
-    "ism_pmi":        "MANEMP",      # Manufacturing Employment as PMI proxy
-    "m2":             "M2SL",        # M2 Money Supply
-}
-
-# ── REGIME THRESHOLDS ─────────────────────────────────────────
-# These reflect empirical macro regime boundaries.
-# Adjust as your thesis evolves.
-THRESHOLDS = {
-    "inflation_high":       3.5,    # CPI YoY % — above = inflationary
-    "inflation_low":        2.0,    # CPI YoY % — below = deflationary pressure
-    "inflation_very_high":  5.0,    # CPI YoY % — stagflation territory
-    "growth_strong":        2.5,    # GDP YoY % — above = strong growth
-    "growth_weak":          1.0,    # GDP YoY % — below = slowing
-    "growth_negative":      0.0,    # GDP YoY % — below = contraction
-    "unemployment_low":     4.0,    # % — tight labor market
-    "unemployment_high":    5.5,    # % — slack labor market
-    "fed_funds_high":       4.0,    # % — restrictive policy
-    "spread_inverted":      0.0,    # 10Y-2Y % — below = inverted curve
-    "spread_steep":         1.0,    # 10Y-2Y % — above = steep curve
-}
-
-# ── ASSET CLASS POSITIONING BY REGIME ─────────────────────────
-POSITIONING = {
-    "GOLDILOCKS": [
-        {"asset_class": "US EQUITIES",      "stance": "OW"},
-        {"asset_class": "CORP CREDIT",      "stance": "OW"},
-        {"asset_class": "INT'L EQUITIES",   "stance": "OW"},
-        {"asset_class": "COMMODITIES",      "stance": "N"},
-        {"asset_class": "GOLD",             "stance": "N"},
-        {"asset_class": "LONG TREASURIES",  "stance": "N"},
-        {"asset_class": "CASH",             "stance": "UW"},
-        {"asset_class": "TIPS",             "stance": "UW"},
-    ],
-    "REFLATION": [
-        {"asset_class": "COMMODITIES",      "stance": "OW"},
-        {"asset_class": "ENERGY",           "stance": "OW"},
-        {"asset_class": "TIPS",             "stance": "OW"},
-        {"asset_class": "INT'L EQUITIES",   "stance": "OW"},
-        {"asset_class": "US EQUITIES",      "stance": "N"},
-        {"asset_class": "LONG TREASURIES",  "stance": "UW"},
-        {"asset_class": "CORP CREDIT",      "stance": "N"},
-        {"asset_class": "CASH",             "stance": "N"},
-    ],
-    "OVERHEATING": [
-        {"asset_class": "COMMODITIES",      "stance": "OW"},
-        {"asset_class": "TIPS",             "stance": "OW"},
-        {"asset_class": "SHORT TREASURIES", "stance": "OW"},
-        {"asset_class": "ENERGY",           "stance": "OW"},
-        {"asset_class": "US EQUITIES",      "stance": "UW"},
-        {"asset_class": "LONG TREASURIES",  "stance": "UW"},
-        {"asset_class": "CORP CREDIT",      "stance": "UW"},
-        {"asset_class": "CASH",             "stance": "N"},
-    ],
-    "STAGFLATION": [
-        {"asset_class": "GOLD",             "stance": "OW"},
-        {"asset_class": "COMMODITIES",      "stance": "OW"},
-        {"asset_class": "TIPS",             "stance": "OW"},
-        {"asset_class": "CASH",             "stance": "OW"},
-        {"asset_class": "ENERGY",           "stance": "OW"},
-        {"asset_class": "US EQUITIES",      "stance": "UW"},
-        {"asset_class": "LONG TREASURIES",  "stance": "UW"},
-        {"asset_class": "CORP CREDIT",      "stance": "UW"},
-    ],
-    "STAGFLATION_RISK": [
-        {"asset_class": "GOLD",             "stance": "OW"},
-        {"asset_class": "TIPS",             "stance": "OW"},
-        {"asset_class": "COMMODITIES",      "stance": "OW"},
-        {"asset_class": "CASH",             "stance": "OW"},
-        {"asset_class": "US EQUITIES",      "stance": "N"},
-        {"asset_class": "LONG TREASURIES",  "stance": "UW"},
-        {"asset_class": "CORP CREDIT",      "stance": "N"},
-        {"asset_class": "ENERGY",           "stance": "OW"},
-    ],
-    "RECESSION": [
-        {"asset_class": "LONG TREASURIES",  "stance": "OW"},
-        {"asset_class": "GOLD",             "stance": "OW"},
-        {"asset_class": "CASH",             "stance": "OW"},
-        {"asset_class": "US EQUITIES",      "stance": "UW"},
-        {"asset_class": "CORP CREDIT",      "stance": "UW"},
-        {"asset_class": "COMMODITIES",      "stance": "UW"},
-        {"asset_class": "ENERGY",           "stance": "UW"},
-        {"asset_class": "TIPS",             "stance": "N"},
-    ],
+    "cpi_yoy":        "CPIAUCSL",
+    "pce_yoy":        "PCEPILFE",
+    "unemployment":   "UNRATE",
+    "gdp_growth":     "GDPC1",
+    "fed_funds":      "FEDFUNDS",
+    "t10y2y":         "T10Y2Y",
+    "ism_pmi":        "MANEMP",
+    "m2":             "M2SL",
 }
 
 # ── SIMPLE CACHE ──────────────────────────────────────────────
@@ -211,41 +133,42 @@ def _score_indicators(ind):
     Negative = recessionary/contractionary signal.
     Inflation is scored separately on its own axis.
     """
+    T = get_thresholds()
     scores = {}
 
     # ── GROWTH SCORE ──────────────────────────────────────────
     gdp = ind.get("gdp")
     if gdp is not None:
-        if gdp >= THRESHOLDS["growth_strong"]:   scores["gdp"] = 2
-        elif gdp >= THRESHOLDS["growth_weak"]:   scores["gdp"] = 1
-        elif gdp >= THRESHOLDS["growth_negative"]: scores["gdp"] = -1
-        else:                                      scores["gdp"] = -2
+        if gdp >= T["growth_strong"]:    scores["gdp"] = 2
+        elif gdp >= T["growth_weak"]:    scores["gdp"] = 1
+        elif gdp >= T["growth_negative"]: scores["gdp"] = -1
+        else:                             scores["gdp"] = -2
     else:
         scores["gdp"] = 0
 
     # ── LABOR MARKET ──────────────────────────────────────────
     ur = ind.get("unemployment")
     if ur is not None:
-        if ur <= THRESHOLDS["unemployment_low"]:   scores["unemployment"] = 2
-        elif ur <= THRESHOLDS["unemployment_high"]: scores["unemployment"] = 0
-        else:                                       scores["unemployment"] = -2
+        if ur <= T["unemployment_low"]:    scores["unemployment"] = 2
+        elif ur <= T["unemployment_high"]: scores["unemployment"] = 0
+        else:                              scores["unemployment"] = -2
     else:
         scores["unemployment"] = 0
 
     # ── YIELD CURVE ───────────────────────────────────────────
     t10y2y = ind.get("t10y2y")
     if t10y2y is not None:
-        if t10y2y >= THRESHOLDS["spread_steep"]:   scores["curve"] = 2
-        elif t10y2y >= THRESHOLDS["spread_inverted"]: scores["curve"] = 0
-        else:                                         scores["curve"] = -2
+        if t10y2y >= T["spread_steep"]:    scores["curve"] = 2
+        elif t10y2y >= T["spread_inverted"]: scores["curve"] = 0
+        else:                               scores["curve"] = -2
     else:
         scores["curve"] = 0
 
     # ── MONETARY POLICY ───────────────────────────────────────
     ff = ind.get("fed_funds")
     if ff is not None:
-        if ff >= THRESHOLDS["fed_funds_high"]:   scores["policy"] = -1  # restrictive
-        else:                                     scores["policy"] = 1   # accommodative
+        if ff >= T["fed_funds_high"]: scores["policy"] = -1
+        else:                         scores["policy"] = 1
     else:
         scores["policy"] = 0
 
@@ -253,7 +176,6 @@ def _score_indicators(ind):
     cpi = ind.get("cpi")
     pce = ind.get("pce")
 
-    # Use average of CPI and PCE if both available
     if cpi is not None and pce is not None:
         inflation = (cpi + pce) / 2
     elif cpi is not None:
@@ -264,12 +186,12 @@ def _score_indicators(ind):
         inflation = None
 
     if inflation is not None:
-        if inflation >= THRESHOLDS["inflation_very_high"]:   scores["inflation"] = 3
-        elif inflation >= THRESHOLDS["inflation_high"]:      scores["inflation"] = 2
-        elif inflation >= THRESHOLDS["inflation_low"]:       scores["inflation"] = 1
-        else:                                                 scores["inflation"] = 0
+        if inflation >= T["inflation_very_high"]: scores["inflation"] = 3
+        elif inflation >= T["inflation_high"]:    scores["inflation"] = 2
+        elif inflation >= T["inflation_low"]:     scores["inflation"] = 1
+        else:                                     scores["inflation"] = 0
     else:
-        scores["inflation"] = 1  # assume moderate inflation if unknown
+        scores["inflation"] = 1
 
     scores["_inflation_val"] = inflation
     scores["_gdp_val"]       = gdp
@@ -337,86 +259,70 @@ def _classify_regime(scores):
 # ── BUILD INDICATOR BREAKDOWN ─────────────────────────────────
 def _build_breakdown(ind, scores):
     """Build the indicator_breakdown array for the API response."""
-
-    def signal(score_key, val, thresholds):
-        """Map a score to a signal label."""
-        s = scores.get(score_key, 0)
-        if s >= 2:   return "BULLISH"
-        elif s >= 1: return "NEUTRAL-BULLISH"
-        elif s == 0: return "NEUTRAL"
-        elif s >= -1: return "NEUTRAL-BEARISH"
-        else:         return "BEARISH"
-
+    T = get_thresholds()
     breakdown = []
 
-    # CPI
     cpi = ind.get("cpi")
     breakdown.append({
         "name":   "CPI YOY",
         "value":  f"{cpi:.1f}%" if cpi is not None else "N/A",
-        "signal": "BEARISH" if (cpi or 0) >= THRESHOLDS["inflation_very_high"]
-                  else "NEUTRAL-BEARISH" if (cpi or 0) >= THRESHOLDS["inflation_high"]
-                  else "NEUTRAL" if (cpi or 0) >= THRESHOLDS["inflation_low"]
+        "signal": "BEARISH" if (cpi or 0) >= T["inflation_very_high"]
+                  else "NEUTRAL-BEARISH" if (cpi or 0) >= T["inflation_high"]
+                  else "NEUTRAL" if (cpi or 0) >= T["inflation_low"]
                   else "BULLISH",
         "raw":    cpi,
     })
 
-    # PCE
     pce = ind.get("pce")
     breakdown.append({
         "name":   "CORE PCE YOY",
         "value":  f"{pce:.1f}%" if pce is not None else "N/A",
-        "signal": "BEARISH" if (pce or 0) >= THRESHOLDS["inflation_very_high"]
-                  else "NEUTRAL-BEARISH" if (pce or 0) >= THRESHOLDS["inflation_high"]
-                  else "NEUTRAL" if (pce or 0) >= THRESHOLDS["inflation_low"]
+        "signal": "BEARISH" if (pce or 0) >= T["inflation_very_high"]
+                  else "NEUTRAL-BEARISH" if (pce or 0) >= T["inflation_high"]
+                  else "NEUTRAL" if (pce or 0) >= T["inflation_low"]
                   else "BULLISH",
         "raw":    pce,
     })
 
-    # GDP
     gdp = ind.get("gdp")
     breakdown.append({
         "name":   "GDP ANNUALIZED",
         "value":  f"{gdp:.1f}%" if gdp is not None else "N/A",
-        "signal": "BULLISH" if (gdp or 0) >= THRESHOLDS["growth_strong"]
-                  else "NEUTRAL" if (gdp or 0) >= THRESHOLDS["growth_weak"]
+        "signal": "BULLISH" if (gdp or 0) >= T["growth_strong"]
+                  else "NEUTRAL" if (gdp or 0) >= T["growth_weak"]
                   else "BEARISH",
         "raw":    gdp,
     })
 
-    # Unemployment
     ur = ind.get("unemployment")
     breakdown.append({
         "name":   "UNEMPLOYMENT",
         "value":  f"{ur:.1f}%" if ur is not None else "N/A",
-        "signal": "BULLISH" if (ur or 99) <= THRESHOLDS["unemployment_low"]
-                  else "NEUTRAL" if (ur or 99) <= THRESHOLDS["unemployment_high"]
+        "signal": "BULLISH" if (ur or 99) <= T["unemployment_low"]
+                  else "NEUTRAL" if (ur or 99) <= T["unemployment_high"]
                   else "BEARISH",
         "raw":    ur,
     })
 
-    # Fed Funds
     ff = ind.get("fed_funds")
     breakdown.append({
         "name":   "FED FUNDS",
         "value":  f"{ff:.2f}%" if ff is not None else "N/A",
-        "signal": "BEARISH" if (ff or 0) >= THRESHOLDS["fed_funds_high"]
+        "signal": "BEARISH" if (ff or 0) >= T["fed_funds_high"]
                   else "NEUTRAL",
         "raw":    ff,
     })
 
-    # 10Y-2Y Spread
     t = ind.get("t10y2y")
     breakdown.append({
         "name":   "10Y-2Y SPREAD",
         "value":  f"{t:.2f}%" if t is not None else "N/A",
-        "signal": "BULLISH" if (t or -99) >= THRESHOLDS["spread_steep"]
-                  else "NEUTRAL" if (t or -99) >= THRESHOLDS["spread_inverted"]
+        "signal": "BULLISH" if (t or -99) >= T["spread_steep"]
+                  else "NEUTRAL" if (t or -99) >= T["spread_inverted"]
                   else "BEARISH",
         "raw":    t,
     })
 
-    # M2
     m2 = ind.get("m2")
     breakdown.append({
         "name":   "M2 YOY",
@@ -430,46 +336,46 @@ def _build_breakdown(ind, scores):
     return breakdown
 
 # ── BUILD KEY RISKS ───────────────────────────────────────────
-def _build_risks(label, ind, scores):
+def _build_risks(internal_label, ind, scores):
     """Generate key risk flags based on current regime and data."""
+    T = get_thresholds()
     risks = []
 
-    cpi      = ind.get("cpi") or 0
-    gdp      = ind.get("gdp") or 0
-    ur       = ind.get("unemployment") or 0
-    t10y2y   = ind.get("t10y2y") or 0
-    ff       = ind.get("fed_funds") or 0
-    m2       = ind.get("m2") or 0
+    cpi    = ind.get("cpi") or 0
+    gdp    = ind.get("gdp") or 0
+    ur     = ind.get("unemployment") or 0
+    t10y2y = ind.get("t10y2y") or 0
+    ff     = ind.get("fed_funds") or 0
+    m2     = ind.get("m2") or 0
 
-    if cpi >= THRESHOLDS["inflation_very_high"]:
+    if cpi >= T["inflation_very_high"]:
         risks.append(f"CPI AT {cpi:.1f}% — STAGFLATIONARY PRESSURE ELEVATED")
-    elif cpi >= THRESHOLDS["inflation_high"]:
+    elif cpi >= T["inflation_high"]:
         risks.append(f"INFLATION ABOVE FED TARGET AT {cpi:.1f}%")
 
-    if t10y2y < THRESHOLDS["spread_inverted"]:
+    if t10y2y < T["spread_inverted"]:
         risks.append(f"YIELD CURVE INVERTED {t10y2y:.2f}% — RECESSION SIGNAL")
 
-    if gdp < THRESHOLDS["growth_negative"]:
+    if gdp < T["growth_negative"]:
         risks.append(f"GDP CONTRACTION AT {gdp:.1f}% — RECESSION CONDITIONS")
-    elif gdp < THRESHOLDS["growth_weak"]:
+    elif gdp < T["growth_weak"]:
         risks.append(f"GDP GROWTH SLOWING — {gdp:.1f}% ANNUALIZED")
 
-    if ff >= THRESHOLDS["fed_funds_high"] and cpi >= THRESHOLDS["inflation_high"]:
+    if ff >= T["fed_funds_high"] and cpi >= T["inflation_high"]:
         risks.append(f"FED RESTRICTIVE AT {ff:.2f}% WITH INFLATION {cpi:.1f}%")
 
-    if ur >= THRESHOLDS["unemployment_high"]:
+    if ur >= T["unemployment_high"]:
         risks.append(f"UNEMPLOYMENT ELEVATED AT {ur:.1f}%")
 
     if m2 < 0:
         risks.append(f"M2 CONTRACTING {m2:.1f}% YOY — LIQUIDITY TIGHTENING")
 
-    if label in ("STAGFLATION", "STAGFLATION_RISK"):
+    if internal_label in ("STAGFLATION", "STAGFLATION_RISK"):
         risks.append("STAGFLATION LIMITS FED CIRCUIT-BREAKING CAPACITY")
 
-    if label == "RECESSION":
+    if internal_label == "RECESSION":
         risks.append("CREDIT STRESS RISK — MONITOR PRIVATE CREDIT SPREADS")
 
-    # Cap at 5 risks for display
     return risks[:5] if risks else ["NO CRITICAL FLAGS AT THIS TIME"]
 
 # ── MAIN ENTRY POINT ──────────────────────────────────────────
@@ -495,15 +401,21 @@ def get_regime():
         scores = _score_indicators(ind)
 
         # Classify regime
-        label, confidence = _classify_regime(scores)
+        internal_label, confidence = _classify_regime(scores)
+
+        # Map internal label → plain-English display label
+        display_label = REGIME_LABELS.get(internal_label, internal_label)
+        description   = REGIME_DESCRIPTIONS.get(display_label, "")
 
         # Build response components
         breakdown   = _build_breakdown(ind, scores)
-        risks       = _build_risks(label, ind, scores)
-        positioning = POSITIONING.get(label, [])
+        risks       = _build_risks(internal_label, ind, scores)
+        positioning = POSITIONING.get(display_label, [])
 
         result = {
-            "label":                  label,
+            "label":                  display_label,
+            "internal_label":         internal_label,
+            "description":            description,
             "confidence_score":       confidence,
             "indicator_breakdown":    breakdown,
             "key_risks":              risks,
