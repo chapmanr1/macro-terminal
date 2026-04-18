@@ -87,6 +87,13 @@
     .pos-item.UW { border-color:var(--red-dim);color:var(--red);background:rgba(239,68,68,0.04) }
     .pos-item.N { border-color:var(--border2);color:var(--muted) }
 
+    /* ── OVERVIEW: EQUITY INDICES STRIP ── */
+    .ov-indices { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .ov-idx-cell { background: var(--bg); padding: 8px 12px; }
+    .ov-idx-name { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 3px; }
+    .ov-idx-price { font-size: 14px; font-weight: 700; line-height: 1.1; margin-bottom: 2px; }
+    .ov-idx-chg { font-size: 10px; letter-spacing: 0.04em; }
+
     /* ── OVERVIEW: MACRO GRID ── */
     .macro-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
     .macro-cell { background: var(--bg); padding: 10px 12px; transition: background 0.15s; }
@@ -288,6 +295,7 @@
     @media (max-width: 640px) {
       .regime-block { grid-template-columns: 1fr; gap: 14px; }
       .regime-tag { font-size: 14px; }
+      .ov-indices { grid-template-columns: repeat(2,1fr); }
       .macro-grid { grid-template-columns: repeat(2,1fr); }
       .macro-cell-value { font-size: 16px; }
       .yc-spreads { flex-wrap: wrap; }
@@ -355,6 +363,26 @@
         </div>
         <div><div class="skel" style="width:140px;height:12px;margin-bottom:6px"></div><div class="skel" style="width:140px;height:10px"></div></div>
       </div>
+    </div>
+
+    <!-- EQUITY INDICES STRIP -->
+    <div id="ovIndicesContent" class="ov-indices">
+      <div class="ov-idx-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:18px;width:80px;margin-bottom:3px"></div><div class="skel" style="height:10px;width:50px"></div></div>
+      <div class="ov-idx-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:18px;width:80px;margin-bottom:3px"></div><div class="skel" style="height:10px;width:50px"></div></div>
+      <div class="ov-idx-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:18px;width:80px;margin-bottom:3px"></div><div class="skel" style="height:10px;width:50px"></div></div>
+      <div class="ov-idx-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:18px;width:80px;margin-bottom:3px"></div><div class="skel" style="height:10px;width:50px"></div></div>
+    </div>
+
+    <!-- MARKET DRIVING NEWS (OVERVIEW) -->
+    <div class="section-header">
+      <div class="section-title" style="color:var(--red)">⬥ MARKET DRIVING</div>
+      <div class="section-line"></div>
+      <div class="section-meta" id="ovDrivingTimestamp">--</div>
+    </div>
+    <div id="ovDrivingContent">
+      <a class="driving-item" href="#" style="border-left:3px solid var(--red)"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:60%"></div></div><div></div></a>
+      <a class="driving-item" href="#" style="border-left:3px solid var(--amber)"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:70%"></div></div><div></div></a>
+      <a class="driving-item" href="#" style="border-left:3px solid var(--green)"><div class="skel" style="height:10px"></div><div><div class="skel" style="height:12px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:65%"></div></div><div></div></a>
     </div>
 
     <div class="section-header">
@@ -958,6 +986,56 @@ function renderYields(data) {
   }
 }
 
+function renderOverviewIndices(data) {
+  const WANTED = ['^GSPC','^DJI','^IXIC','^RUT'];
+  const NAMES  = {'^GSPC':'S&P 500','^DJI':'DOW','^IXIC':'NASDAQ','^RUT':'RUSSELL 2K'};
+  const all    = (data.indices || []);
+  const idxMap = {};
+  all.forEach(i => { idxMap[i.symbol] = i; });
+
+  const cells = WANTED.map(sym => {
+    const idx = idxMap[sym];
+    if (!idx || idx.error) {
+      return `<div class="ov-idx-cell"><div class="ov-idx-name">${NAMES[sym]}</div><div class="ov-idx-price c-muted">--</div><div class="ov-idx-chg c-muted">--</div></div>`;
+    }
+    const cls   = idx.direction === 'UP' ? 'c-green' : idx.direction === 'DOWN' ? 'c-red' : 'c-muted';
+    const arrow = idx.direction === 'UP' ? '▲' : idx.direction === 'DOWN' ? '▼' : '–';
+    const pct   = idx.pct_change != null ? arrow + ' ' + Math.abs(idx.pct_change).toFixed(2) + '%' : '--';
+    const price = idx.price != null ? Number(idx.price).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--';
+    return `<div class="ov-idx-cell">
+      <div class="ov-idx-name">${NAMES[sym]}</div>
+      <div class="ov-idx-price">${price}</div>
+      <div class="ov-idx-chg ${cls}">${pct}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('ovIndicesContent').className = 'ov-indices';
+  setEl('ovIndicesContent', cells);
+}
+
+function renderOverviewDriving(data) {
+  const articles = data.articles || [];
+  const colors = ['var(--red)','var(--amber)','var(--green)'];
+  const labels = ['▶ TOP','▶ 2ND','▶ 3RD'];
+  const icons  = ['🔴','🟡','🟢'];
+  const top    = [...articles].sort((a,b) => (b.score||0)-(a.score||0)).slice(0,3);
+
+  if (!top.length) { setEl('ovDrivingContent','<div class="error-row">NO HIGH-IMPACT NEWS</div>'); return; }
+
+  const items = top.map((a,i) => `
+    <a class="driving-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer" style="border-left:3px solid ${colors[i]}">
+      <div class="driving-rank" style="color:${colors[i]}">${labels[i]}</div>
+      <div>
+        <div class="driving-headline">${a.title||a.headline||''}</div>
+        <div class="driving-meta">${(a.source||'').toUpperCase()} · ${a.relTime||fmtRelTime(a.publishedAt)} · IMPACT ${a.score||0}</div>
+      </div>
+      <div class="driving-icon">${icons[i]}</div>
+    </a>`).join('');
+
+  setEl('ovDrivingContent', items);
+  document.getElementById('ovDrivingTimestamp').textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
+}
+
 async function fetchOverview() {
   setStatus('loading');
   let anyError = false;
@@ -965,6 +1043,8 @@ async function fetchOverview() {
     apiFetch('/api/regime').then(renderRegime).catch(e => { renderError('regimeContent','REGIME UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/macro').then(renderMacro).catch(e => { renderError('macroContent','MACRO UNAVAILABLE — '+e.message); anyError=true; }),
     apiFetch('/api/yields').then(renderYields).catch(e => { renderError('yieldsContent','YIELDS UNAVAILABLE — '+e.message); anyError=true; }),
+    apiFetch('/api/market').then(renderOverviewIndices).catch(() => {}),
+    apiFetch('/api/news').then(renderOverviewDriving).catch(() => {}),
   ]);
   setStatus(anyError ? 'error' : 'ok');
   startRefreshCountdown();
