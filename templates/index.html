@@ -62,8 +62,13 @@
     .c-blue{color:var(--blue)} .c-muted{color:var(--muted)} .c-white{color:var(--white)}
     .c-orange{color:var(--orange)}
 
-    /* ── OVERVIEW: REGIME ── */
-    .regime-block { padding: 16px 14px; background: var(--bg); border-bottom: 1px solid var(--border); display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: start; }
+    /* ── OVERVIEW: 3-COLUMN REGIME LAYOUT ── */
+    .ov-three-col { display: grid; grid-template-columns: 20fr 45fr 35fr; border-bottom: 1px solid var(--border); align-items: start; }
+    .ov-col-left { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .ov-col-center { border-right: 1px solid var(--border); padding: 12px 14px; }
+    .ov-col-right { display: flex; flex-direction: column; }
+    .ov-cell { padding: 12px 14px; }
+    .ov-cell-div { border-bottom: 1px solid var(--border); }
     .regime-tag { display: inline-block; font-size: 18px; font-weight: 700; letter-spacing: 0.15em; padding: 6px 16px; border: 2px solid var(--amber); color: var(--amber); background: rgba(245,158,11,0.07); margin-bottom: 6px; }
     .regime-tag.STRONG-GROWTH { border-color:var(--green);color:var(--green);background:rgba(0,217,100,0.06) }
     .regime-tag.RECESSION { border-color:var(--red);color:var(--red);background:rgba(239,68,68,0.06) }
@@ -299,9 +304,9 @@
 
     /* ── MOBILE ── */
     @media (max-width: 640px) {
-      .regime-block { grid-template-columns: 1fr; gap: 14px; }
+      .ov-three-col { grid-template-columns: 1fr; }
+      .ov-col-left, .ov-col-center { border-right: none; border-bottom: 1px solid var(--border); }
       .regime-tag { font-size: 14px; }
-      .ov-idx-cell { flex: 0 0 calc(50% - 1px); }
       .macro-grid { grid-template-columns: repeat(2,1fr); }
       .macro-cell-value { font-size: 16px; }
       .yc-spreads { flex-wrap: wrap; }
@@ -361,30 +366,49 @@
       <div class="section-meta" id="regimeTimestamp">--</div>
     </div>
     <div id="regimeContent">
-      <div class="regime-block">
-        <div><div class="skel" style="width:200px;height:44px;margin-bottom:8px"></div><div class="skel" style="width:120px;height:12px"></div></div>
-        <div class="regime-indicators" style="grid-template-columns:repeat(4,1fr)">
-          <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
-          <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
+      <div class="ov-three-col">
+
+        <!-- LEFT: regime tag + confidence + indices -->
+        <div class="ov-col-left">
+          <div id="regimeLeft" class="ov-cell ov-cell-div">
+            <div class="skel" style="width:100%;height:36px;margin-bottom:8px"></div>
+            <div class="skel" style="width:80px;height:10px"></div>
+          </div>
+          <div id="ovIndicesContent" class="ov-cell">
+            <div class="regime-risks-title">INDICES</div>
+            <div class="skel" style="height:10px;margin-bottom:5px"></div>
+            <div class="skel" style="height:10px;margin-bottom:5px"></div>
+            <div class="skel" style="height:10px;margin-bottom:5px"></div>
+            <div class="skel" style="height:10px"></div>
+          </div>
         </div>
-        <div><div class="skel" style="width:140px;height:12px;margin-bottom:6px"></div><div class="skel" style="width:140px;height:10px"></div></div>
+
+        <!-- CENTER: indicator cards + positioning -->
+        <div class="ov-col-center" id="regimeCenter">
+          <div class="regime-indicators">
+            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
+            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
+            <div class="skel" style="height:52px"></div><div class="skel" style="height:52px"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: key risks + market driving -->
+        <div class="ov-col-right">
+          <div id="regimeRight" class="ov-cell ov-cell-div">
+            <div class="regime-risks-title">KEY RISKS</div>
+            <div class="skel" style="height:10px;margin-bottom:6px"></div>
+            <div class="skel" style="height:10px;margin-bottom:6px"></div>
+            <div class="skel" style="height:10px"></div>
+          </div>
+          <div id="ovDrivingContent" class="ov-cell">
+            <div class="regime-risks-title">MARKET DRIVING</div>
+            <div class="skel" style="height:10px;margin-bottom:6px"></div>
+            <div class="skel" style="height:10px;margin-bottom:6px"></div>
+            <div class="skel" style="height:10px"></div>
+          </div>
+        </div>
+
       </div>
-    </div>
-
-    <!-- EQUITY INDICES STRIP -->
-    <div id="ovIndicesContent" class="regime-indicators" style="padding:8px 14px;border-bottom:1px solid var(--border)">
-      <div class="regime-ind"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:14px;width:70px;margin-bottom:3px"></div><div class="skel" style="height:8px;width:40px"></div></div>
-      <div class="regime-ind"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:14px;width:70px;margin-bottom:3px"></div><div class="skel" style="height:8px;width:40px"></div></div>
-      <div class="regime-ind"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:14px;width:70px;margin-bottom:3px"></div><div class="skel" style="height:8px;width:40px"></div></div>
-      <div class="regime-ind"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:14px;width:70px;margin-bottom:3px"></div><div class="skel" style="height:8px;width:40px"></div></div>
-    </div>
-
-    <!-- MARKET DRIVING NEWS (OVERVIEW) -->
-    <div id="ovDrivingContent" style="padding:8px 14px 4px;border-bottom:1px solid var(--border)">
-      <div class="regime-risks-title">MARKET DRIVING</div>
-      <div class="skel" style="height:10px;margin-bottom:6px"></div>
-      <div class="skel" style="height:10px;margin-bottom:6px"></div>
-      <div class="skel" style="height:10px;margin-bottom:4px"></div>
     </div>
 
     <div class="section-header">
@@ -797,6 +821,15 @@ function renderRegime(data) {
 
   setTimestamp('regimeTimestamp', data.timestamp);
 
+  const cssLabel = label.replace(/\s+/g, '-');
+
+  // LEFT: regime tag + confidence
+  const leftEl = document.getElementById('regimeLeft');
+  if (leftEl) setEl('regimeLeft', `
+    <div class="regime-tag ${cssLabel}">${label}</div>
+    <div class="regime-confidence">CONFIDENCE <span>${confidence !== null ? fmt(confidence,0)+'%' : '--'}</span></div>`);
+
+  // CENTER: indicator cards + positioning
   const indCards = indicators.map(ind => {
     const cls = ind.signal === 'BULLISH' ? 'c-green' : ind.signal === 'BEARISH' ? 'c-red' : 'c-amber';
     return `<div class="regime-ind">
@@ -806,32 +839,26 @@ function renderRegime(data) {
     </div>`;
   }).join('');
 
-  const riskItems = risks.length
-    ? risks.map(r => `<div class="regime-risk-item">▸ ${r}</div>`).join('')
-    : '<div class="c-muted" style="font-size:10px">NO FLAGS</div>';
-
   const posItems = positioning.map(p => {
     const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
     const pre = p.stance==='OW' ? '▲ ' : p.stance==='UW' ? '▼ ' : '– ';
     return `<div class="pos-item ${cls}">${pre}${p.asset_class||''}</div>`;
   }).join('');
 
-  const cssLabel = label.replace(/\s+/g, '-');
-  setEl('regimeContent', `
-    <div class="regime-block">
-      <div>
-        <div class="regime-tag ${cssLabel}">${label}</div>
-        <div class="regime-confidence">CONFIDENCE <span>${confidence !== null ? fmt(confidence,0)+'%' : '--'}</span></div>
-      </div>
-      <div>
-        <div class="regime-indicators">${indCards || '<div class="c-muted">No data</div>'}</div>
-        ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid">${posItems}</div></div>` : ''}
-      </div>
-      <div>
-        <div class="regime-risks-title">KEY RISKS</div>
-        ${riskItems}
-      </div>
-    </div>`);
+  const centerEl = document.getElementById('regimeCenter');
+  if (centerEl) setEl('regimeCenter', `
+    <div class="regime-indicators">${indCards || '<div class="c-muted">No data</div>'}</div>
+    ${posItems ? `<div class="regime-positioning"><div class="regime-pos-title">SUGGESTED POSITIONING</div><div class="pos-grid">${posItems}</div></div>` : ''}`);
+
+  // RIGHT: key risks
+  const riskItems = risks.length
+    ? risks.map(r => `<div class="regime-risk-item">▸ ${r}</div>`).join('')
+    : '<div class="c-muted" style="font-size:10px">NO FLAGS</div>';
+
+  const rightEl = document.getElementById('regimeRight');
+  if (rightEl) setEl('regimeRight', `
+    <div class="regime-risks-title">KEY RISKS</div>
+    ${riskItems}`);
 }
 
 function renderMacro(data) {
@@ -1010,10 +1037,7 @@ function renderOverviewIndices(data) {
     </div>`;
   }).join('');
 
-  const el = document.getElementById('ovIndicesContent');
-  el.className = '';
-  el.style.cssText = 'padding:8px 14px;border-bottom:1px solid var(--border)';
-  setEl('ovIndicesContent', `<div class="regime-risks-title">INDICES</div><div class="regime-indicators">${cells}</div>`);
+  setEl('ovIndicesContent', `<div class="regime-risks-title">INDICES</div><div class="regime-indicators" style="grid-template-columns:1fr">${cells}</div>`);
 }
 
 function renderOverviewDriving(data) {
@@ -1025,10 +1049,9 @@ function renderOverviewDriving(data) {
 
   if (!top.length) { setEl('ovDrivingContent','<div class="error-row">NO HIGH-IMPACT NEWS</div>'); return; }
 
-  const items = `<div style="padding:8px 14px 4px;border-bottom:1px solid var(--border)">
+  const items = `
     <div class="regime-risks-title">MARKET DRIVING</div>
-    ${top.map((a,i) => `<a href="${a.url||'#'}" target="_blank" rel="noopener noreferrer" class="regime-risk-item" style="color:${colors[i]};display:block;text-decoration:none">▸ ${a.title||a.headline||''}</a>`).join('')}
-  </div>`;
+    ${top.map((a,i) => `<a href="${a.url||'#'}" target="_blank" rel="noopener noreferrer" class="regime-risk-item" style="color:${colors[i]};display:block;text-decoration:none;padding:4px 0">▸ ${a.title||a.headline||''}<span style="display:block;font-size:8px;color:var(--muted);margin-top:2px;font-weight:400;letter-spacing:0.04em">${(a.source||'').toUpperCase()} · ${a.relTime||fmtRelTime(a.publishedAt)}</span></a>`).join('')}`;
 
   setEl('ovDrivingContent', items);
 }
