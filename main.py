@@ -5,7 +5,7 @@ import os
 import threading
 import time
 import logging
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from datetime import datetime
 
 try:
@@ -121,6 +121,37 @@ def api_calendar():
     except Exception as e:
         log.error(f"Calendar error: {e}")
         return jsonify({"error": str(e), "events": [], "timestamp": datetime.utcnow().isoformat()}), 500
+
+@app.route("/api/watchlist")
+def api_watchlist():
+    try:
+        tickers_str = request.args.get('tickers', '')
+        if not tickers_str:
+            return jsonify({"items": [], "timestamp": datetime.utcnow().isoformat()})
+        tickers = [t.strip().upper() for t in tickers_str.split(',') if t.strip()][:20]
+        import yfinance as yf
+        items = []
+        for ticker in tickers:
+            try:
+                t = yf.Ticker(ticker)
+                info = t.fast_info
+                price = getattr(info, 'last_price', None)
+                prev  = getattr(info, 'previous_close', None)
+                chg   = round(price - prev, 2) if price and prev else None
+                pct   = round(chg / prev * 100, 2) if chg and prev else None
+                items.append({
+                    "symbol":     ticker,
+                    "price":      round(price, 2) if price else None,
+                    "change":     chg,
+                    "pct_change": pct,
+                    "direction":  "UP" if chg and chg > 0 else "DOWN" if chg and chg < 0 else "FLAT",
+                })
+            except Exception as e:
+                items.append({"symbol": ticker, "error": str(e)[:60]})
+        return jsonify({"items": items, "timestamp": datetime.utcnow().isoformat()})
+    except Exception as e:
+        log.error(f"Watchlist error: {e}")
+        return jsonify({"error": str(e), "items": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/health")
 def api_health():
