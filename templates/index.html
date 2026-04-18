@@ -372,23 +372,19 @@
     </div>
 
     <!-- EQUITY INDICES STRIP -->
-    <div id="ovIndicesContent" class="ov-indices">
-      <div class="ov-idx-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:18px;width:80px;margin-bottom:3px"></div><div class="skel" style="height:10px;width:50px"></div></div>
-      <div class="ov-idx-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:18px;width:80px;margin-bottom:3px"></div><div class="skel" style="height:10px;width:50px"></div></div>
-      <div class="ov-idx-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:18px;width:80px;margin-bottom:3px"></div><div class="skel" style="height:10px;width:50px"></div></div>
-      <div class="ov-idx-cell"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:18px;width:80px;margin-bottom:3px"></div><div class="skel" style="height:10px;width:50px"></div></div>
+    <div id="ovIndicesContent" class="regime-indicators" style="padding:8px 14px;border-bottom:1px solid var(--border)">
+      <div class="regime-ind"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:14px;width:70px;margin-bottom:3px"></div><div class="skel" style="height:8px;width:40px"></div></div>
+      <div class="regime-ind"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:14px;width:70px;margin-bottom:3px"></div><div class="skel" style="height:8px;width:40px"></div></div>
+      <div class="regime-ind"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:14px;width:70px;margin-bottom:3px"></div><div class="skel" style="height:8px;width:40px"></div></div>
+      <div class="regime-ind"><div class="skel" style="height:8px;width:60px;margin-bottom:4px"></div><div class="skel" style="height:14px;width:70px;margin-bottom:3px"></div><div class="skel" style="height:8px;width:40px"></div></div>
     </div>
 
     <!-- MARKET DRIVING NEWS (OVERVIEW) -->
-    <div class="section-header">
-      <div class="section-title" style="color:var(--red)">⬥ MARKET DRIVING</div>
-      <div class="section-line"></div>
-      <div class="section-meta" id="ovDrivingTimestamp">--</div>
-    </div>
-    <div id="ovDrivingContent">
-      <a class="ov-driving-item" href="#" style="border-left:3px solid var(--red)"><div class="skel" style="height:9px;width:26px;flex-shrink:0"></div><div class="skel" style="height:10px;flex:1"></div><div class="skel" style="height:9px;width:80px;flex-shrink:0"></div></a>
-      <a class="ov-driving-item" href="#" style="border-left:3px solid var(--amber)"><div class="skel" style="height:9px;width:26px;flex-shrink:0"></div><div class="skel" style="height:10px;flex:1"></div><div class="skel" style="height:9px;width:80px;flex-shrink:0"></div></a>
-      <a class="ov-driving-item" href="#" style="border-left:3px solid var(--green)"><div class="skel" style="height:9px;width:26px;flex-shrink:0"></div><div class="skel" style="height:10px;flex:1"></div><div class="skel" style="height:9px;width:80px;flex-shrink:0"></div></a>
+    <div id="ovDrivingContent" style="padding:8px 14px 4px;border-bottom:1px solid var(--border)">
+      <div class="regime-risks-title">MARKET DRIVING</div>
+      <div class="skel" style="height:10px;margin-bottom:6px"></div>
+      <div class="skel" style="height:10px;margin-bottom:6px"></div>
+      <div class="skel" style="height:10px;margin-bottom:4px"></div>
     </div>
 
     <div class="section-header">
@@ -995,27 +991,28 @@ function renderYields(data) {
 function renderOverviewIndices(data) {
   const WANTED = ['^GSPC','^DJI','^IXIC','^RUT'];
   const NAMES  = {'^GSPC':'S&P 500','^DJI':'DOW','^IXIC':'NASDAQ','^RUT':'RUSSELL 2K'};
-  const all    = (data.indices || []);
   const idxMap = {};
-  all.forEach(i => { idxMap[i.symbol] = i; });
+  (data.indices || []).forEach(i => { idxMap[i.symbol] = i; });
 
   const cells = WANTED.map(sym => {
     const idx = idxMap[sym];
     if (!idx || idx.error) {
-      return `<div class="ov-idx-cell"><div class="ov-idx-name">${NAMES[sym]}</div><div class="ov-idx-price c-muted">--</div><div class="ov-idx-chg c-muted">--</div></div>`;
+      return `<div class="regime-ind"><div class="regime-ind-name">${NAMES[sym]}</div><div class="regime-ind-val c-muted">--</div><div class="regime-ind-signal c-muted">--</div></div>`;
     }
     const cls   = idx.direction === 'UP' ? 'c-green' : idx.direction === 'DOWN' ? 'c-red' : 'c-muted';
     const arrow = idx.direction === 'UP' ? '▲' : idx.direction === 'DOWN' ? '▼' : '–';
     const pct   = idx.pct_change != null ? arrow + ' ' + Math.abs(idx.pct_change).toFixed(2) + '%' : '--';
     const price = idx.price != null ? Number(idx.price).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--';
-    return `<div class="ov-idx-cell">
-      <div class="ov-idx-name">${NAMES[sym]}</div>
-      <div class="ov-idx-price">${price}</div>
-      <div class="ov-idx-chg ${cls}">${pct}</div>
+    return `<div class="regime-ind">
+      <div class="regime-ind-name">${NAMES[sym]}</div>
+      <div class="regime-ind-val ${cls}">${price}</div>
+      <div class="regime-ind-signal ${cls}">${pct}</div>
     </div>`;
   }).join('');
 
-  document.getElementById('ovIndicesContent').className = 'ov-indices';
+  const el = document.getElementById('ovIndicesContent');
+  el.className = 'regime-indicators';
+  el.style.cssText = 'padding:8px 14px;border-bottom:1px solid var(--border)';
   setEl('ovIndicesContent', cells);
 }
 
@@ -1028,15 +1025,12 @@ function renderOverviewDriving(data) {
 
   if (!top.length) { setEl('ovDrivingContent','<div class="error-row">NO HIGH-IMPACT NEWS</div>'); return; }
 
-  const items = top.map((a,i) => `
-    <a class="ov-driving-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer" style="border-left:3px solid ${colors[i]}">
-      <div class="ov-driving-rank" style="color:${colors[i]}">${labels[i]}</div>
-      <div class="ov-driving-headline">${a.title||a.headline||''}</div>
-      <div class="ov-driving-meta">${(a.source||'').toUpperCase()} · ${a.relTime||fmtRelTime(a.publishedAt)}</div>
-    </a>`).join('');
+  const items = `<div style="padding:8px 14px 4px;border-bottom:1px solid var(--border)">
+    <div class="regime-risks-title">MARKET DRIVING</div>
+    ${top.map((a,i) => `<a href="${a.url||'#'}" target="_blank" rel="noopener noreferrer" class="regime-risk-item" style="color:${colors[i]};display:block;text-decoration:none">▸ ${a.title||a.headline||''}</a>`).join('')}
+  </div>`;
 
   setEl('ovDrivingContent', items);
-  document.getElementById('ovDrivingTimestamp').textContent = 'UPDATED ' + fmtRelTime(new Date().toISOString());
 }
 
 async function fetchOverview() {
