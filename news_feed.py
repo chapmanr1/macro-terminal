@@ -57,6 +57,18 @@ RSS_FEEDS = [
         "source": "WSJ",
     },
     {
+        "url":    "https://feeds.a.dj.com/rss/RSSOpinion.xml",
+        "source": "WSJ",
+    },
+    {
+        "url":    "https://feeds.a.dj.com/rss/RSSWorldNews.xml",
+        "source": "WSJ",
+    },
+    {
+        "url":    "https://feeds.a.dj.com/rss/RSSWSJD.xml",
+        "source": "WSJ",
+    },
+    {
         "url":    "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
         "source": "CNBC",
     },
