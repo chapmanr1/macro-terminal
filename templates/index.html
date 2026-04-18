@@ -97,19 +97,18 @@
     .macro-cell-sub { font-size: 9px; color: var(--muted); letter-spacing: 0.05em; }
     .macro-cell-change { font-size: 9px; margin-top: 3px; letter-spacing: 0.05em; }
 
-    /* ── OVERVIEW: YIELD CURVE ── */
-    .yields-block { padding: 12px 14px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 20px; }
-    .yield-bars { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
-    .yield-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
-    .yield-bar-val { font-size: 9px; color: var(--white); letter-spacing: 0.04em; }
-    .yield-bar { width: 100%; min-height: 2px; background: var(--green); border-radius: 1px 1px 0 0; transition: height 0.5s ease; }
-    .yield-bar.inverted { background: var(--red); }
-    .yield-bar-label { font-size: 8px; color: var(--muted); letter-spacing: 0.06em; }
-    .yield-spread-box { display: flex; flex-direction: column; justify-content: center; gap: 8px; min-width: 140px; }
-    .yield-spread-item { display: flex; justify-content: space-between; gap: 16px; font-size: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-    .yield-spread-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .yield-spread-label { color: var(--muted); letter-spacing: 0.08em; }
-    .yield-spread-val { font-weight: 700; }
+    /* ── OVERVIEW: YIELD CURVE CHART ── */
+    .yc-wrap { padding: 12px 14px 0; border-bottom: 1px solid var(--border); }
+    .yc-chart { width: 100%; }
+    .yc-chart svg { display: block; overflow: visible; }
+    .yc-dot { cursor: crosshair; transition: r 0.15s; }
+    .yc-dot:hover { r: 5; }
+    .yc-spreads { display: flex; gap: 0; border-top: 1px solid var(--border); margin-top: 10px; }
+    .yc-spread-row { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-right: 1px solid var(--border); }
+    .yc-spread-row:last-child { border-right: none; }
+    .yc-spread-lbl { font-size: 8px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 4px; }
+    .yc-spread-val { font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
+    .yc-tooltip { position: fixed; pointer-events: none; background: var(--bg3); border: 1px solid var(--border2); color: var(--white); font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.06em; padding: 4px 10px; opacity: 0; transition: opacity 0.1s; z-index: 9999; white-space: nowrap; }
 
     /* ── MARKETS: FUTURES ── */
     .futures-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
@@ -292,8 +291,8 @@
       .regime-tag { font-size: 14px; }
       .macro-grid { grid-template-columns: repeat(2,1fr); }
       .macro-cell-value { font-size: 16px; }
-      .yields-block { grid-template-columns: 1fr; }
-      .yield-spread-box { flex-direction: row; flex-wrap: wrap; min-width: unset; }
+      .yc-spreads { flex-wrap: wrap; }
+      .yc-spread-row { flex: 1 1 45%; }
       .futures-strip { grid-template-columns: 1fr; }
       .futures-price { font-size: 16px; }
       .indices-grid { grid-template-columns: repeat(2,1fr); }
@@ -382,16 +381,13 @@
       <div class="section-meta" id="yieldsTimestamp">--</div>
     </div>
     <div id="yieldsContent">
-      <div class="yields-block">
-        <div class="yield-bars" id="yieldBars">
-          <div class="skel" style="height:60px;flex:1"></div><div class="skel" style="height:40px;flex:1"></div>
-          <div class="skel" style="height:70px;flex:1"></div><div class="skel" style="height:75px;flex:1"></div>
-          <div class="skel" style="height:78px;flex:1"></div><div class="skel" style="height:80px;flex:1"></div>
-        </div>
-        <div class="yield-spread-box" id="yieldSpreads">
-          <div class="skel" style="height:14px;width:130px;margin-bottom:6px"></div>
-          <div class="skel" style="height:14px;width:130px;margin-bottom:6px"></div>
-          <div class="skel" style="height:14px;width:130px"></div>
+      <div class="yc-wrap">
+        <div class="yc-chart"><div class="skel" style="height:160px;width:100%"></div></div>
+        <div class="yc-spreads">
+          <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
+          <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
+          <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
+          <div class="yc-spread-row"><div class="skel" style="height:8px;width:50px;margin-bottom:6px"></div><div class="skel" style="height:16px;width:40px"></div></div>
         </div>
       </div>
     </div>
@@ -835,33 +831,137 @@ function renderMacro(data) {
   setEl('macroContent', cells);
 }
 
+// ── YIELD CURVE SVG HELPERS ──────────────────────────────────
+function _ycCatmullRom(pts) {
+  if (pts.length < 2) return '';
+  let d = `M${pts[0].x},${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C${cp1x.toFixed(2)},${cp1y.toFixed(2)} ${cp2x.toFixed(2)},${cp2y.toFixed(2)} ${p2.x},${p2.y}`;
+  }
+  return d;
+}
+
+function _buildYieldCurveSVG(yields, curveStatus) {
+  const W = 560, H = 170;
+  const PL = 46, PR = 10, PT = 12, PB = 26;
+  const CW = W - PL - PR, CH = H - PT - PB;
+
+  const cur  = yields.map((y, i) => ({ x: PL + i/(yields.length-1)*CW, y: null, v: y.value,  lbl: y.label }));
+  const prev = yields.map((y, i) => ({ x: PL + i/(yields.length-1)*CW, y: null, v: y.prior,  lbl: y.label }));
+
+  const allVals = [...yields.map(y=>y.value), ...yields.map(y=>y.prior)].filter(v=>v!=null);
+  if (!allVals.length) return '<div class="c-muted" style="font-size:10px;padding:20px 0">NO YIELD DATA</div>';
+
+  const rawMin = Math.min(...allVals), rawMax = Math.max(...allVals);
+  const pad    = Math.max((rawMax - rawMin) * 0.15, 0.1);
+  const yMin   = rawMin - pad, yMax = rawMax + pad;
+  const yRange = yMax - yMin;
+  const toY    = v => PT + CH - ((v - yMin) / yRange) * CH;
+
+  cur.forEach(p  => { if (p.v  != null) p.y = toY(p.v);  });
+  prev.forEach(p => { if (p.v  != null) p.y = toY(p.v);  });
+
+  const curPts  = cur.filter(p  => p.y != null);
+  const prevPts = prev.filter(p => p.y != null);
+
+  const lineColor = curveStatus === 'NORMAL'   ? '#00d964'
+                  : curveStatus === 'INVERTED' ? '#ef4444'
+                  : '#f59e0b';
+
+  // Grid lines (5 horizontal)
+  const GRID = 4;
+  let gridSVG = '';
+  for (let i = 0; i <= GRID; i++) {
+    const v   = yMin + (yRange / GRID) * i;
+    const gy  = toY(v);
+    gridSVG += `<line x1="${PL}" y1="${gy.toFixed(1)}" x2="${W-PR}" y2="${gy.toFixed(1)}" stroke="#1e1e1e" stroke-width="1"/>`;
+    gridSVG += `<text x="${PL-4}" y="${(gy+3).toFixed(1)}" text-anchor="end" font-size="8" fill="#555" font-family="'Courier New',monospace">${v.toFixed(2)}</text>`;
+  }
+
+  // X labels
+  let xLabelSVG = yields.map((y, i) => {
+    const x = PL + i/(yields.length-1)*CW;
+    return `<text x="${x.toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="8" fill="#555" font-family="'Courier New',monospace">${y.label}</text>`;
+  }).join('');
+
+  // Prior day path
+  const prevPath = _ycCatmullRom(prevPts);
+  const prevSVG  = prevPath
+    ? `<path d="${prevPath}" fill="none" stroke="#3a3a3a" stroke-width="1.2" stroke-dasharray="4 3"/>`
+    : '';
+
+  // Area gradient fill
+  const gid     = 'ycg';
+  const curPath = _ycCatmullRom(curPts);
+  let areaSVG = '', lineSVG = '';
+  if (curPath && curPts.length) {
+    const baseline = PT + CH;
+    const areaPath = curPath + ` L${curPts[curPts.length-1].x},${baseline} L${curPts[0].x},${baseline} Z`;
+    areaSVG = `<path d="${areaPath}" fill="url(#${gid})"/>`;
+    lineSVG = `<path d="${curPath}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+
+  // Dots
+  const dotsSVG = curPts.map(p =>
+    `<circle class="yc-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${lineColor}" stroke="#0d0d0d" stroke-width="1.5" data-lbl="${p.lbl}" data-val="${p.v.toFixed(2)}%"/>`
+  ).join('');
+
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${lineColor}" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="${lineColor}" stop-opacity="0.01"/>
+    </linearGradient>
+  </defs>
+  ${gridSVG}${xLabelSVG}${prevSVG}${areaSVG}${lineSVG}${dotsSVG}
+</svg>`;
+}
+
 function renderYields(data) {
-  const yields  = data.yields  || [];
-  const spreads = data.spreads || [];
+  const yields      = data.yields       || [];
+  const spreads     = data.spreads      || [];
+  const curveStatus = data.curve_status || 'UNKNOWN';
   setTimestamp('yieldsTimestamp', data.timestamp);
 
-  const maxVal = Math.max(...yields.map(y => Math.abs(y.value||0)), 0.01);
-  const barHTML = yields.map(y => {
-    const hp  = Math.max(5, Math.round(Math.abs(y.value||0) / maxVal * 100));
-    const inv = (y.value||0) < 0;
-    return `<div class="yield-bar-wrap">
-      <div class="yield-bar-val ${inv?'c-red':'c-green'}">${fmt(y.value,2)}%</div>
-      <div class="yield-bar ${inv?'inverted':''}" style="height:${hp}%"></div>
-      <div class="yield-bar-label">${y.label||y.maturity||''}</div>
-    </div>`;
-  }).join('');
-
-  setEl('yieldBars', barHTML || '<div class="c-muted" style="font-size:10px;padding:20px">NO YIELD DATA</div>');
+  const chartSVG = _buildYieldCurveSVG(yields, curveStatus);
 
   const spreadHTML = spreads.map(sp => {
-    const cls = colorClass(sp.value, false);
-    return `<div class="yield-spread-item">
-      <span class="yield-spread-label">${sp.label||''}</span>
-      <span class="yield-spread-val ${cls}">${fmt(sp.value,2)}%</span>
+    const v   = sp.value;
+    const cls = v == null ? 'c-muted' : v < 0 ? 'c-red' : v < 0.15 ? 'c-amber' : 'c-green';
+    return `<div class="yc-spread-row">
+      <span class="yc-spread-lbl">${sp.label||''}</span>
+      <span class="yc-spread-val ${cls}">${v != null ? fmt(v,2)+'%' : '--'}</span>
     </div>`;
   }).join('');
 
-  setEl('yieldSpreads', spreadHTML || '<div class="c-muted" style="font-size:10px">NO SPREAD DATA</div>');
+  setEl('yieldsContent', `<div class="yc-wrap">
+    <div class="yc-chart">${chartSVG}</div>
+    <div class="yc-spreads">${spreadHTML || '<div class="c-muted" style="font-size:10px;padding:10px">NO SPREAD DATA</div>'}</div>
+  </div>`);
+
+  // Attach hover tooltip to dots
+  const tip = document.getElementById('ycTooltip');
+  if (tip) {
+    document.querySelectorAll('.yc-dot').forEach(dot => {
+      dot.addEventListener('mouseenter', e => {
+        tip.textContent = dot.dataset.lbl + '  ' + dot.dataset.val;
+        tip.style.opacity = '1';
+      });
+      dot.addEventListener('mousemove', e => {
+        tip.style.left = (e.clientX + 14) + 'px';
+        tip.style.top  = (e.clientY - 28) + 'px';
+      });
+      dot.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
+    });
+  }
 }
 
 async function fetchOverview() {
@@ -1417,5 +1517,6 @@ state.tabLoaded['overview'] = true;
 fetchOverview();
 startRefreshCountdown();
 </script>
+<div id="ycTooltip" class="yc-tooltip"></div>
 </body>
 </html>
