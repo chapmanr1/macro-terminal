@@ -1011,9 +1011,9 @@ function renderOverviewIndices(data) {
   }).join('');
 
   const el = document.getElementById('ovIndicesContent');
-  el.className = 'regime-indicators';
+  el.className = '';
   el.style.cssText = 'padding:8px 14px;border-bottom:1px solid var(--border)';
-  setEl('ovIndicesContent', cells);
+  setEl('ovIndicesContent', `<div class="regime-risks-title">INDICES</div><div class="regime-indicators">${cells}</div>`);
 }
 
 function renderOverviewDriving(data) {
