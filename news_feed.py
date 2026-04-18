@@ -41,11 +41,15 @@ RSS_FEEDS = [
         "source": "Reuters",
     },
     {
-        "url":    "https://www.marketwatch.com/rss/topstories",
+        "url":    "https://www.marketwatch.com/rss/economy",
         "source": "MarketWatch",
     },
     {
-        "url":    "https://www.marketwatch.com/rss/economy",
+        "url":    "https://www.marketwatch.com/rss/marketpulse",
+        "source": "MarketWatch",
+    },
+    {
+        "url":    "https://www.marketwatch.com/rss/realtimeheadlines",
         "source": "MarketWatch",
     },
     {
@@ -126,9 +130,16 @@ NOISE_TERMS = [
     "cryptocurrency", "bitcoin", "crypto", "nft",
     "celebrity", "sports", "entertainment", "gaming",
     "cannabis", "obituary", "weather", "horoscope",
+    "personal finance", "best credit cards", "mortgage rates today",
+    "how to save", "retirement tips", "budget", "coupon",
+    "best savings account", "cd rates", "insurance",
+    "real estate agent", "home buying tips", "car insurance",
+    "student loans", "personal loan", "dating", "relationship",
+    "health tips", "diet", "exercise", "celebrity net worth",
+    "richest", "wealthiest", "billionaire list",
 ]
 
-MIN_SCORE = 2
+MIN_SCORE = 6
 
 # ── DATE PARSER ───────────────────────────────────────────────
 def _parse_date(pub_date):
