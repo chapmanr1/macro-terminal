@@ -302,6 +302,36 @@
     .cal-impact.MEDIUM { color: var(--amber); border: 1px solid var(--amber-dim); }
     .cal-impact.LOW { color: var(--muted); border: 1px solid var(--border2); }
 
+    /* ── SETTINGS DRAWER ── */
+    .settings-gear { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 15px; padding: 2px 4px; -webkit-tap-highlight-color: transparent; transition: color 0.15s; line-height: 1; }
+    .settings-gear:hover, .settings-gear.active { color: var(--amber); }
+    .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 200; }
+    .settings-overlay.open { display: block; }
+    .settings-drawer { position: fixed; top: 0; right: -320px; width: 300px; height: 100vh; background: #0d0d0d; border-left: 1px solid var(--border2); z-index: 201; display: flex; flex-direction: column; transition: right 0.25s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
+    .settings-drawer.open { right: 0; }
+    .settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: #080808; flex-shrink: 0; }
+    .settings-title-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: var(--amber); }
+    .settings-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 2px 6px; -webkit-tap-highlight-color: transparent; line-height: 1; font-family: var(--font); }
+    .settings-close:hover { color: var(--white); }
+    .settings-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+    .settings-body::-webkit-scrollbar { width: 4px; }
+    .settings-body::-webkit-scrollbar-thumb { background: var(--border2); }
+    .settings-group { border-bottom: 1px solid var(--border2); }
+    .settings-group-hdr { padding: 7px 14px; background: #080808; font-size: 8px; font-weight: 700; letter-spacing: 0.2em; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid var(--border); }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-label { font-size: 10px; letter-spacing: 0.06em; color: var(--white); }
+    .tog { position: relative; width: 34px; height: 18px; flex-shrink: 0; }
+    .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .tog-track { position: absolute; inset: 0; background: var(--border2); border-radius: 18px; cursor: pointer; transition: background 0.2s; }
+    .tog-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: var(--muted); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
+    .tog input:checked + .tog-track { background: rgba(0,217,100,0.18); }
+    .tog input:checked + .tog-track::after { transform: translateX(16px); background: var(--green); }
+    .settings-footer { padding: 12px 14px; border-top: 1px solid var(--border); background: #080808; flex-shrink: 0; }
+    .settings-reset { width: 100%; padding: 8px; background: none; border: 1px solid var(--border2); color: var(--muted); font-family: var(--font); font-size: 9px; letter-spacing: 0.14em; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+    .settings-reset:hover { border-color: var(--amber); color: var(--amber); }
+    @media (max-width: 640px) { .settings-drawer { width: 100%; right: -100%; } }
+
     /* ── MOBILE ── */
     @media (max-width: 640px) {
       .ov-three-col { grid-template-columns: 1fr; }
@@ -340,6 +370,7 @@
       <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
       <span id="clock">--:--:--</span>
       <span id="refreshLabel" style="color:var(--muted)">REFRESH 60s</span>
+      <button class="settings-gear" id="settingsGear" title="Settings">⚙</button>
     </div>
   </div>
 
@@ -522,6 +553,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="tab-panel" id="tab-economy">
 
+    <div id="sec-eco-scorecard">
     <div class="section-header">
       <div class="section-title">ECONOMIC SCORECARD</div>
       <div class="section-line"></div>
@@ -557,6 +589,8 @@
       <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
       <div class="scorecard-cell"><div class="skel" style="height:8px;width:70px;margin-bottom:5px"></div><div class="skel" style="height:24px;width:60px;margin-bottom:4px"></div></div>
     </div>
+
+    </div><!-- /sec-eco-scorecard -->
 
     <div class="section-header">
       <div class="section-title">RECESSION PROBABILITY</div>
@@ -619,6 +653,7 @@
       </div>
     </div>
 
+    <div id="sec-crd-triggers">
     <div class="section-header">
       <div class="section-title" style="color:var(--orange)">⬦ THESIS MONITOR</div>
       <div class="section-line"></div>
@@ -632,6 +667,8 @@
       <div class="trigger-item"><div class="skel" style="height:10px;width:200px;margin-bottom:8px"></div><div class="skel" style="height:8px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:80%"></div></div>
       <div class="trigger-item"><div class="skel" style="height:10px;width:200px;margin-bottom:8px"></div><div class="skel" style="height:8px;margin-bottom:6px"></div><div class="skel" style="height:9px;width:80%"></div></div>
     </div>
+
+    </div><!-- /sec-crd-triggers -->
 
   </div><!-- /tab-credit -->
 
@@ -672,6 +709,19 @@
   </div><!-- /tab-news -->
 
 </div><!-- /terminal -->
+
+<!-- SETTINGS OVERLAY + DRAWER -->
+<div class="settings-overlay" id="settingsOverlay"></div>
+<div class="settings-drawer" id="settingsDrawer">
+  <div class="settings-hdr">
+    <div class="settings-title-lbl">DISPLAY SETTINGS</div>
+    <button class="settings-close" id="settingsClose">✕</button>
+  </div>
+  <div class="settings-body" id="settingsBody"></div>
+  <div class="settings-footer">
+    <button class="settings-reset" id="settingsReset">↺ RESET TO DEFAULT</button>
+  </div>
+</div>
 
 <script>
 // ════════════════════════════════════════════════════════════
@@ -1610,6 +1660,119 @@ autoRefreshInterval = setInterval(() => {
 state.tabLoaded['overview'] = true;
 fetchOverview();
 startRefreshCountdown();
+
+// ════════════════════════════════════════════════════════════
+// SETTINGS SYSTEM
+// ════════════════════════════════════════════════════════════
+const SETTINGS_CFG = [
+  { tab: 'OVERVIEW', items: [
+    { key: 'ov_regime',    label: 'Regime Status',      els: ['regimeContent'] },
+    { key: 'ov_macro',     label: 'Macro Indicators',   els: ['macroContent'] },
+    { key: 'ov_yields',    label: 'Yield Curve',        els: ['yieldsContent'] },
+  ]},
+  { tab: 'MARKETS', items: [
+    { key: 'mkt_futures',  label: 'Futures',            els: ['futuresContent'] },
+    { key: 'mkt_indices',  label: 'Equity Indices',     els: ['indicesContent'] },
+    { key: 'mkt_sector',   label: 'Sector Rotation',    els: ['sectorSignalBar','sectorContent'] },
+    { key: 'mkt_vix',      label: 'VIX Fear Gauge',     els: ['vixContent'] },
+    { key: 'mkt_commod',   label: 'Commodities',        els: ['commodContent'] },
+    { key: 'mkt_currency', label: 'Currencies',         els: ['currencyContent'] },
+  ]},
+  { tab: 'ECONOMY', items: [
+    { key: 'eco_scorecard',label: 'Economic Scorecard', els: ['sec-eco-scorecard'] },
+    { key: 'eco_recession',label: 'Recession Prob.',    els: ['recessionContent'] },
+    { key: 'eco_kshape',   label: 'K-Shape Monitor',   els: ['kshapeContent'] },
+  ]},
+  { tab: 'CREDIT', items: [
+    { key: 'crd_spreads',  label: 'Credit Spreads',     els: ['spreadsContent'] },
+    { key: 'crd_tips',     label: 'TIPS & Breakeven',   els: ['breakevensContent'] },
+    { key: 'crd_curve',    label: 'Bond Desk Curve',    els: ['creditCurveContent'] },
+    { key: 'crd_triggers', label: 'Thesis Monitor',     els: ['sec-crd-triggers'] },
+  ]},
+  { tab: 'NEWS', items: [
+    { key: 'news_driving', label: 'Market Driving',     els: ['drivingContent'] },
+    { key: 'news_calendar',label: 'Econ Calendar',      els: ['calendarContent'] },
+    { key: 'news_feed',    label: 'News Feed',          els: ['newsContent'] },
+  ]},
+];
+const SETTINGS_KEY = 'macroterm_settings_v1';
+
+function _loadS() { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; } }
+function _saveS(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+
+function _applySection(els, visible) {
+  els.forEach((id, idx) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = visible ? '' : 'none';
+    if (idx === 0) {
+      const prev = el.previousElementSibling;
+      if (prev && prev.classList &&
+          (prev.classList.contains('section-header') || prev.classList.contains('sub-section-header'))) {
+        prev.style.display = visible ? '' : 'none';
+      }
+    }
+  });
+}
+
+function applySettings() {
+  const s = _loadS();
+  SETTINGS_CFG.forEach(grp => grp.items.forEach(item => _applySection(item.els, s[item.key] !== false)));
+}
+
+function _bindToggles() {
+  document.querySelectorAll('#settingsBody input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const s = _loadS(); s[cb.dataset.key] = cb.checked; _saveS(s); applySettings();
+    });
+  });
+}
+
+function _buildDrawerHTML() {
+  const s = _loadS();
+  return SETTINGS_CFG.map(grp => `
+    <div class="settings-group">
+      <div class="settings-group-hdr">${grp.tab}</div>
+      ${grp.items.map(item => {
+        const on = s[item.key] !== false;
+        return `<div class="settings-row">
+          <span class="settings-row-label">${item.label}</span>
+          <label class="tog">
+            <input type="checkbox" data-key="${item.key}"${on ? ' checked' : ''}>
+            <span class="tog-track"></span>
+          </label>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function openSettings() {
+  document.getElementById('settingsDrawer').classList.add('open');
+  document.getElementById('settingsOverlay').classList.add('open');
+  document.getElementById('settingsGear').classList.add('active');
+  document.getElementById('settingsBody').innerHTML = _buildDrawerHTML();
+  _bindToggles();
+}
+
+function closeSettings() {
+  document.getElementById('settingsDrawer').classList.remove('open');
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('settingsGear').classList.remove('active');
+}
+
+document.getElementById('settingsGear').addEventListener('click', () => {
+  document.getElementById('settingsDrawer').classList.contains('open') ? closeSettings() : openSettings();
+});
+document.getElementById('settingsClose').addEventListener('click', closeSettings);
+document.getElementById('settingsOverlay').addEventListener('click', closeSettings);
+document.getElementById('settingsReset').addEventListener('click', () => {
+  localStorage.removeItem(SETTINGS_KEY);
+  applySettings();
+  document.getElementById('settingsBody').innerHTML = _buildDrawerHTML();
+  _bindToggles();
+});
+
+applySettings();
 </script>
 <div id="ycTooltip" class="yc-tooltip"></div>
 </body>
