@@ -22,10 +22,10 @@
     .terminal { max-width: 1400px; margin: 0 auto; padding: 0 0 60px; }
 
     /* ── TOP BAR ── */
-    .topbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); background: #080808; position: sticky; top: 0; z-index: 100; }
-    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); background: #080808; position: sticky; top: 0; z-index: 100; }
+    .topbar-left { display: flex; align-items: center; }
     .topbar-brand { font-size: 13px; font-weight: 700; color: var(--amber); letter-spacing: 0.2em; text-align: center; }
-    .topbar-right { display: flex; align-items: center; gap: 14px; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
+    .topbar-right { display: flex; align-items: center; justify-content: flex-end; gap: 14px; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
     .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); margin-right: 5px; animation: pulse-dot 2s infinite; }
     .status-dot.loading { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
     .status-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); animation: none; }
