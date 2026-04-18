@@ -307,7 +307,7 @@
     .settings-gear:hover, .settings-gear.active { color: var(--amber); }
     .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 200; }
     .settings-overlay.open { display: block; }
-    .settings-drawer { position: fixed; top: 0; right: -320px; width: 300px; height: 100vh; background: #0d0d0d; border-left: 1px solid var(--border2); z-index: 201; display: flex; flex-direction: column; transition: right 0.25s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
+    .settings-drawer { position: fixed; top: 0; right: -330px; width: 320px; height: 100vh; background: #0d0d0d; border-left: 1px solid var(--border2); z-index: 201; display: flex; flex-direction: column; transition: right 0.25s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
     .settings-drawer.open { right: 0; }
     .settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: #080808; flex-shrink: 0; }
     .settings-title-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: var(--amber); }
@@ -318,9 +318,9 @@
     .settings-body::-webkit-scrollbar-thumb { background: var(--border2); }
     .settings-group { border-bottom: 1px solid var(--border2); }
     .settings-group-hdr { padding: 7px 14px; background: #080808; font-size: 8px; font-weight: 700; letter-spacing: 0.2em; color: var(--muted); border-bottom: 1px solid var(--border); }
-    .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid var(--border); }
+    .settings-row { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--border); cursor: default; }
     .settings-row:last-child { border-bottom: none; }
-    .settings-row-label { font-size: 10px; letter-spacing: 0.06em; color: var(--white); }
+    .settings-row-label { font-size: 10px; letter-spacing: 0.06em; color: var(--white); flex: 1; }
     .tog { position: relative; width: 34px; height: 18px; flex-shrink: 0; }
     .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
     .tog-track { position: absolute; inset: 0; background: var(--border2); border-radius: 18px; cursor: pointer; transition: background 0.2s; }
@@ -330,6 +330,21 @@
     .settings-footer { padding: 12px 14px; border-top: 1px solid var(--border); background: #080808; flex-shrink: 0; }
     .settings-reset { width: 100%; padding: 8px; background: none; border: 1px solid var(--border2); color: var(--muted); font-family: var(--font); font-size: 9px; letter-spacing: 0.14em; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
     .settings-reset:hover { border-color: var(--amber); color: var(--amber); }
+    /* Drawer row drag handle */
+    .srow-drag { cursor: grab; color: var(--border2); font-size: 14px; user-select: none; flex-shrink: 0; transition: color 0.15s; line-height: 1; padding: 0 2px; }
+    .settings-row:hover .srow-drag { color: var(--muted); }
+    .srow-drag:hover { color: var(--amber) !important; }
+    .settings-row.srow-ghost { opacity: 0.3; }
+    .settings-row.srow-over-top { box-shadow: 0 -2px 0 0 var(--amber); }
+    .settings-row.srow-over-bot { box-shadow: 0 2px 0 0 var(--amber); }
+    /* Section wrap (dashboard) */
+    .section-wrap { transition: opacity 0.15s; }
+    .section-wrap.sw-ghost { opacity: 0.25; }
+    .section-wrap.sw-over { outline: 2px solid var(--amber); outline-offset: -2px; }
+    /* Drag handle in section-header */
+    .sdrag { cursor: grab; color: transparent; font-size: 14px; padding: 0 6px 0 0; user-select: none; line-height: 1; transition: color 0.15s; flex-shrink: 0; }
+    .section-header:hover .sdrag { color: var(--muted); }
+    .sdrag:hover { color: var(--amber) !important; }
     @media (max-width: 640px) { .settings-drawer { width: 100%; right: -100%; } }
 
     /* ── MOBILE ── */
@@ -1662,98 +1677,259 @@ fetchOverview();
 startRefreshCountdown();
 
 // ════════════════════════════════════════════════════════════
-// SETTINGS SYSTEM
+// SETTINGS + DRAG-DROP SYSTEM
 // ════════════════════════════════════════════════════════════
-const SETTINGS_CFG = [
-  { tab: 'OVERVIEW', items: [
-    { key: 'ov_regime',    label: 'Regime Status',      els: ['regimeContent'] },
-    { key: 'ov_macro',     label: 'Macro Indicators',   els: ['macroContent'] },
-    { key: 'ov_yields',    label: 'Yield Curve',        els: ['yieldsContent'] },
-  ]},
-  { tab: 'MARKETS', items: [
-    { key: 'mkt_futures',  label: 'Futures',            els: ['futuresContent'] },
-    { key: 'mkt_indices',  label: 'Equity Indices',     els: ['indicesContent'] },
-    { key: 'mkt_sector',   label: 'Sector Rotation',    els: ['sectorSignalBar','sectorContent'] },
-    { key: 'mkt_vix',      label: 'VIX Fear Gauge',     els: ['vixContent'] },
-    { key: 'mkt_commod',   label: 'Commodities',        els: ['commodContent'] },
-    { key: 'mkt_currency', label: 'Currencies',         els: ['currencyContent'] },
-  ]},
-  { tab: 'ECONOMY', items: [
-    { key: 'eco_scorecard',label: 'Economic Scorecard', els: ['sec-eco-scorecard'] },
-    { key: 'eco_recession',label: 'Recession Prob.',    els: ['recessionContent'] },
-    { key: 'eco_kshape',   label: 'K-Shape Monitor',   els: ['kshapeContent'] },
-  ]},
-  { tab: 'CREDIT', items: [
-    { key: 'crd_spreads',  label: 'Credit Spreads',     els: ['spreadsContent'] },
-    { key: 'crd_tips',     label: 'TIPS & Breakeven',   els: ['breakevensContent'] },
-    { key: 'crd_curve',    label: 'Bond Desk Curve',    els: ['creditCurveContent'] },
-    { key: 'crd_triggers', label: 'Thesis Monitor',     els: ['sec-crd-triggers'] },
-  ]},
-  { tab: 'NEWS', items: [
-    { key: 'news_driving', label: 'Market Driving',     els: ['drivingContent'] },
-    { key: 'news_calendar',label: 'Econ Calendar',      els: ['calendarContent'] },
-    { key: 'news_feed',    label: 'News Feed',          els: ['newsContent'] },
-  ]},
+
+const SEC_DEFS = [
+  {id:'ov-regime',    tab:'overview',title:'Regime Status',      els:['regimeContent'],            pw:false},
+  {id:'ov-macro',     tab:'overview',title:'Macro Indicators',   els:['macroContent'],             pw:false},
+  {id:'ov-yields',    tab:'overview',title:'Yield Curve',        els:['yieldsContent'],            pw:false},
+  {id:'mkt-futures',  tab:'markets', title:'Futures',            els:['futuresContent'],           pw:false},
+  {id:'mkt-indices',  tab:'markets', title:'Equity Indices',     els:['indicesContent'],           pw:false},
+  {id:'mkt-sector',   tab:'markets', title:'Sector Rotation',    els:['sectorSignalBar','sectorContent'], pw:false},
+  {id:'mkt-vix',      tab:'markets', title:'VIX Fear Gauge',     els:['vixContent'],               pw:false},
+  {id:'mkt-commod',   tab:'markets', title:'Commodities',        els:['commodContent'],            pw:false},
+  {id:'mkt-currency', tab:'markets', title:'Currencies',         els:['currencyContent'],          pw:false},
+  {id:'eco-scorecard',tab:'economy', title:'Economic Scorecard', els:['sec-eco-scorecard'],        pw:true},
+  {id:'eco-recession',tab:'economy', title:'Recession Prob.',    els:['recessionContent'],         pw:false},
+  {id:'eco-kshape',   tab:'economy', title:'K-Shape Monitor',    els:['kshapeContent'],            pw:false},
+  {id:'crd-spreads',  tab:'credit',  title:'Credit Spreads',     els:['spreadsContent'],           pw:false},
+  {id:'crd-tips',     tab:'credit',  title:'TIPS & Breakeven',   els:['breakevensContent'],        pw:false},
+  {id:'crd-curve',    tab:'credit',  title:'Bond Desk Curve',    els:['creditCurveContent'],       pw:false},
+  {id:'crd-triggers', tab:'credit',  title:'Thesis Monitor',     els:['sec-crd-triggers'],         pw:true},
+  {id:'news-driving', tab:'news',    title:'Market Driving',     els:['drivingContent'],           pw:false},
+  {id:'news-calendar',tab:'news',    title:'Econ Calendar',      els:['calendarContent'],          pw:false},
+  {id:'news-feed',    tab:'news',    title:'News Feed',          els:['newsContent'],              pw:false},
 ];
-const SETTINGS_KEY = 'macroterm_settings_v1';
 
-function _loadS() { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; } }
-function _saveS(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+const DEF_ORDER = Object.fromEntries(SEC_DEFS.map((s,i)=>[s.id,i]));
+const S_KEY = 'macroterm_sv2';
 
-function _applySection(els, visible) {
-  els.forEach((id, idx) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.display = visible ? '' : 'none';
-    if (idx === 0) {
-      const prev = el.previousElementSibling;
-      if (prev && prev.classList &&
-          (prev.classList.contains('section-header') || prev.classList.contains('sub-section-header'))) {
-        prev.style.display = visible ? '' : 'none';
-      }
+function sLoad(){ try{return JSON.parse(localStorage.getItem(S_KEY))||{};}catch{return{};} }
+function sSave(d){ localStorage.setItem(S_KEY,JSON.stringify(d)); }
+
+// ── 1. WRAP: build section-wrap divs around each section ──────
+function initWrappers() {
+  SEC_DEFS.forEach(sec => {
+    if (sec.pw) {
+      // Already has a wrapper div — just upgrade it
+      const el = document.getElementById(sec.els[0]);
+      if (!el) return;
+      el.classList.add('section-wrap');
+      el.dataset.sectionId = sec.id;
+      el.dataset.tab = sec.tab;
+      const hdr = el.querySelector('.section-header');
+      if (hdr && !hdr.querySelector('.sdrag')) _addHandle(hdr);
+      return;
     }
+    // Build wrapper from content IDs + preceding section-header
+    const contentEls = sec.els.map(id => document.getElementById(id)).filter(Boolean);
+    if (!contentEls.length) return;
+    const hdr = contentEls[0].previousElementSibling;
+    if (!hdr || !hdr.classList.contains('section-header')) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'section-wrap';
+    wrap.dataset.sectionId = sec.id;
+    wrap.dataset.tab = sec.tab;
+    hdr.parentNode.insertBefore(wrap, hdr);
+    wrap.appendChild(hdr);
+    contentEls.forEach(el => wrap.appendChild(el));
+    if (!hdr.querySelector('.sdrag')) _addHandle(hdr);
   });
 }
 
-function applySettings() {
-  const s = _loadS();
-  SETTINGS_CFG.forEach(grp => grp.items.forEach(item => _applySection(item.els, s[item.key] !== false)));
+function _addHandle(hdr) {
+  const h = document.createElement('span');
+  h.className = 'sdrag';
+  h.title = 'Drag to reorder';
+  h.textContent = '⠿';
+  hdr.insertBefore(h, hdr.firstChild);
 }
 
-function _bindToggles() {
-  document.querySelectorAll('#settingsBody input[type="checkbox"]').forEach(cb => {
-    cb.addEventListener('change', () => {
-      const s = _loadS(); s[cb.dataset.key] = cb.checked; _saveS(s); applySettings();
+// ── 2. APPLY: order + visibility from localStorage ─────────────
+function applySettings() {
+  const d = sLoad();
+  const byTab = {};
+  SEC_DEFS.forEach(s => (byTab[s.tab] = byTab[s.tab] || []).push(s));
+
+  Object.entries(byTab).forEach(([tab, secs]) => {
+    const tabEl = document.getElementById('tab-' + tab);
+    if (!tabEl) return;
+
+    // Reorder
+    [...secs]
+      .sort((a,b) => (d[a.id]?.order ?? DEF_ORDER[a.id]) - (d[b.id]?.order ?? DEF_ORDER[b.id]))
+      .forEach(s => {
+        const el = tabEl.querySelector(`[data-section-id="${s.id}"]`);
+        if (el) tabEl.appendChild(el);
+      });
+
+    // Visibility
+    secs.forEach(s => {
+      const el = tabEl.querySelector(`[data-section-id="${s.id}"]`);
+      if (el) el.style.display = d[s.id]?.visible === false ? 'none' : '';
     });
   });
 }
 
-function _buildDrawerHTML() {
-  const s = _loadS();
-  return SETTINGS_CFG.map(grp => `
-    <div class="settings-group">
-      <div class="settings-group-hdr">${grp.tab}</div>
-      ${grp.items.map(item => {
-        const on = s[item.key] !== false;
-        return `<div class="settings-row">
-          <span class="settings-row-label">${item.label}</span>
-          <label class="tog">
-            <input type="checkbox" data-key="${item.key}"${on ? ' checked' : ''}>
-            <span class="tog-track"></span>
-          </label>
-        </div>`;
-      }).join('')}
-    </div>`).join('');
+// ── 3. DASHBOARD DRAG & DROP ──────────────────────────────────
+let _dSrc = null;
+
+function initDashDnD() {
+  document.querySelectorAll('.section-wrap').forEach(wrap => {
+    const handle = wrap.querySelector('.sdrag');
+    if (handle) {
+      handle.addEventListener('mousedown', () => wrap.setAttribute('draggable', 'true'));
+      handle.addEventListener('touchstart', () => wrap.setAttribute('draggable', 'true'), {passive:true});
+    }
+
+    wrap.addEventListener('dragstart', e => {
+      _dSrc = wrap;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', wrap.dataset.sectionId);
+      requestAnimationFrame(() => { if (_dSrc) wrap.classList.add('sw-ghost'); });
+    });
+
+    wrap.addEventListener('dragend', () => {
+      wrap.setAttribute('draggable', 'false');
+      wrap.classList.remove('sw-ghost', 'sw-over');
+      document.querySelectorAll('.sw-over').forEach(el => el.classList.remove('sw-over'));
+      _dSrc = null;
+    });
+
+    wrap.addEventListener('dragover', e => {
+      if (!_dSrc || _dSrc === wrap || _dSrc.dataset.tab !== wrap.dataset.tab) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.sw-over').forEach(el => el.classList.remove('sw-over'));
+      wrap.classList.add('sw-over');
+    });
+
+    wrap.addEventListener('dragleave', e => {
+      if (!wrap.contains(e.relatedTarget)) wrap.classList.remove('sw-over');
+    });
+
+    wrap.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!_dSrc || _dSrc === wrap || _dSrc.dataset.tab !== wrap.dataset.tab) return;
+      wrap.classList.remove('sw-over');
+      const parent = wrap.parentNode;
+      const all = [...parent.querySelectorAll(':scope > .section-wrap')];
+      parent.insertBefore(_dSrc, all.indexOf(_dSrc) < all.indexOf(wrap) ? wrap.nextSibling : wrap);
+      _saveTabOrder(wrap.dataset.tab, parent);
+      if (document.getElementById('settingsDrawer').classList.contains('open')) renderDrawer();
+    });
+  });
+}
+
+function _saveTabOrder(tab, parent) {
+  const d = sLoad();
+  [...parent.querySelectorAll(':scope > .section-wrap')].forEach((el, i) => {
+    (d[el.dataset.sectionId] = d[el.dataset.sectionId] || {}).order = i;
+  });
+  sSave(d);
+}
+
+// ── 4. SETTINGS DRAWER ───────────────────────────────────────
+let _drSrc = null;
+const TAB_NAMES = {overview:'OVERVIEW',markets:'MARKETS',economy:'ECONOMY',credit:'CREDIT',news:'NEWS'};
+
+function renderDrawer() {
+  const d = sLoad();
+  const byTab = {};
+  SEC_DEFS.forEach(s => (byTab[s.tab] = byTab[s.tab] || []).push(s));
+
+  const html = Object.entries(byTab).map(([tab, secs]) => {
+    const sorted = [...secs].sort((a,b) =>
+      (d[a.id]?.order ?? DEF_ORDER[a.id]) - (d[b.id]?.order ?? DEF_ORDER[b.id]));
+    const rows = sorted.map(s => {
+      const on = d[s.id]?.visible !== false;
+      return `<div class="settings-row" draggable="true" data-sid="${s.id}">
+        <span class="srow-drag" title="Drag to reorder">⠿</span>
+        <span class="settings-row-label">${s.title}</span>
+        <label class="tog">
+          <input type="checkbox" data-key="${s.id}"${on ? ' checked' : ''}>
+          <span class="tog-track"></span>
+        </label>
+      </div>`;
+    }).join('');
+    return `<div class="settings-group">
+      <div class="settings-group-hdr">${TAB_NAMES[tab] || tab.toUpperCase()}</div>
+      <div class="stab-rows" data-tab="${tab}">${rows}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('settingsBody').innerHTML = html;
+  _bindDrawer();
+}
+
+function _bindDrawer() {
+  // Visibility toggles
+  document.querySelectorAll('#settingsBody input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const d = sLoad();
+      (d[cb.dataset.key] = d[cb.dataset.key] || {}).visible = cb.checked;
+      sSave(d);
+      applySettings();
+    });
+  });
+
+  // Drawer row DnD
+  document.querySelectorAll('.settings-row').forEach(row => {
+    row.addEventListener('dragstart', e => {
+      _drSrc = row;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', row.dataset.sid);
+      requestAnimationFrame(() => row.classList.add('srow-ghost'));
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('srow-ghost', 'srow-over-top', 'srow-over-bot');
+      document.querySelectorAll('.srow-over-top,.srow-over-bot')
+        .forEach(el => el.classList.remove('srow-over-top', 'srow-over-bot'));
+      _drSrc = null;
+    });
+    row.addEventListener('dragover', e => {
+      if (!_drSrc || _drSrc === row) return;
+      if (_drSrc.closest('.stab-rows') !== row.closest('.stab-rows')) return;
+      e.preventDefault();
+      document.querySelectorAll('.srow-over-top,.srow-over-bot')
+        .forEach(el => el.classList.remove('srow-over-top', 'srow-over-bot'));
+      const r = row.getBoundingClientRect();
+      row.classList.add(e.clientY < r.top + r.height / 2 ? 'srow-over-top' : 'srow-over-bot');
+    });
+    row.addEventListener('dragleave', () =>
+      row.classList.remove('srow-over-top', 'srow-over-bot'));
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!_drSrc || _drSrc === row) return;
+      const tabRows = row.closest('.stab-rows');
+      if (!tabRows || _drSrc.closest('.stab-rows') !== tabRows) return;
+      row.classList.remove('srow-over-top', 'srow-over-bot');
+      const r = row.getBoundingClientRect();
+      tabRows.insertBefore(_drSrc, e.clientY < r.top + r.height / 2 ? row : row.nextSibling);
+
+      // Save + sync dashboard
+      const tab = tabRows.dataset.tab;
+      const d = sLoad();
+      const newOrder = [...tabRows.querySelectorAll('.settings-row')].map(r => r.dataset.sid);
+      newOrder.forEach((id, i) => (d[id] = d[id] || {}).order = i);
+      sSave(d);
+      const tabEl = document.getElementById('tab-' + tab);
+      if (tabEl) newOrder.forEach(id => {
+        const el = tabEl.querySelector(`[data-section-id="${id}"]`);
+        if (el) tabEl.appendChild(el);
+      });
+    });
+  });
 }
 
 function openSettings() {
   document.getElementById('settingsDrawer').classList.add('open');
   document.getElementById('settingsOverlay').classList.add('open');
   document.getElementById('settingsGear').classList.add('active');
-  document.getElementById('settingsBody').innerHTML = _buildDrawerHTML();
-  _bindToggles();
+  renderDrawer();
 }
-
 function closeSettings() {
   document.getElementById('settingsDrawer').classList.remove('open');
   document.getElementById('settingsOverlay').classList.remove('open');
@@ -1766,13 +1942,15 @@ document.getElementById('settingsGear').addEventListener('click', () => {
 document.getElementById('settingsClose').addEventListener('click', closeSettings);
 document.getElementById('settingsOverlay').addEventListener('click', closeSettings);
 document.getElementById('settingsReset').addEventListener('click', () => {
-  localStorage.removeItem(SETTINGS_KEY);
+  localStorage.removeItem(S_KEY);
   applySettings();
-  document.getElementById('settingsBody').innerHTML = _buildDrawerHTML();
-  _bindToggles();
+  renderDrawer();
 });
 
-applySettings();
+// ── BOOT (runs after all render functions are defined) ────────
+initWrappers();   // wrap sections in DOM + add drag handles
+applySettings();  // apply saved order + visibility
+initDashDnD();    // attach dashboard DnD events
 </script>
 <div id="ycTooltip" class="yc-tooltip"></div>
 </body>
