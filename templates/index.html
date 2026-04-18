@@ -24,8 +24,7 @@
     /* ── TOP BAR ── */
     .topbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); background: #080808; position: sticky; top: 0; z-index: 100; }
     .topbar-left { display: flex; align-items: center; gap: 16px; }
-    .topbar-brand { font-size: 13px; font-weight: 700; color: var(--amber); letter-spacing: 0.2em; }
-    .topbar-sub { font-size: 9px; color: var(--muted); letter-spacing: 0.12em; }
+    .topbar-brand { font-size: 13px; font-weight: 700; color: var(--amber); letter-spacing: 0.2em; text-align: center; }
     .topbar-right { display: flex; align-items: center; gap: 14px; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
     .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); margin-right: 5px; animation: pulse-dot 2s infinite; }
     .status-dot.loading { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
@@ -303,7 +302,6 @@
       .spread-value { font-size: 24px; }
       .kshape-grid { grid-template-columns: 1fr; }
       .scorecard-grid { grid-template-columns: repeat(2,1fr); }
-      .topbar-sub { display: none; }
       .pos-grid { grid-template-columns: 1fr 1fr 1fr; }
       .news-item { grid-template-columns: 50px 1fr; }
       .news-source { display: none; }
@@ -318,10 +316,7 @@
   <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-left">
-      <div>
-        <div class="topbar-brand">MACRO TERMINAL</div>
-        <div class="topbar-sub">REGIME · MARKETS · ECONOMY · CREDIT · NEWS</div>
-      </div>
+      <div class="topbar-brand">MACRO TERMINAL</div>
     </div>
     <div class="topbar-right">
       <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
