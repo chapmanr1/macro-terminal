@@ -267,12 +267,12 @@
     .trigger-sustained { font-size: 8px; color: var(--muted); margin-top: 3px; letter-spacing: 0.04em; }
 
     /* ── NEWS TAB ── */
-    .driving-item { background: #0d0d0d; border-bottom: 1px solid var(--border); padding: 12px 14px; display: grid; grid-template-columns: 50px 1fr 24px; gap: 10px; align-items: start; text-decoration: none; color: inherit; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
+    .driving-item { background: #0d0d0d; border-bottom: 1px solid var(--border); padding: 12px 14px; display: grid; grid-template-columns: 50px 1fr; gap: 10px; align-items: start; text-decoration: none; color: inherit; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
     .driving-item:hover { background: var(--bg3); }
     .driving-rank { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; padding-top: 2px; }
     .driving-headline { font-size: 12px; font-weight: 700; color: var(--white); line-height: 1.4; letter-spacing: 0.02em; }
     .driving-meta { font-size: 9px; color: var(--muted); margin-top: 5px; letter-spacing: 0.05em; }
-    .driving-icon { font-size: 14px; text-align: right; padding-top: 2px; }
+
     .news-list { border-bottom: 1px solid var(--border); }
     .news-item { display: grid; grid-template-columns: 60px 1fr 80px; gap: 10px; align-items: start; padding: 9px 14px; border-bottom: 1px solid var(--border); transition: background 0.15s; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; }
     .news-item:last-child { border-bottom: none; }
@@ -492,7 +492,7 @@
       .pos-grid { grid-template-columns: 1fr 1fr 1fr; }
       .news-item { grid-template-columns: 50px 1fr; }
       .news-source { display: none; }
-      .driving-item { grid-template-columns: 44px 1fr 20px; }
+      .driving-item { grid-template-columns: 44px 1fr; }
       .cal-event { grid-template-columns: 60px 1fr 54px; }
     }
   </style>
@@ -1272,7 +1272,6 @@ let _lastNewsRaw = null;
 function renderMarketDriving(articles, containerId) {
   const colors = ['var(--red)','var(--amber)','var(--green)'];
   const labels = ['▶ TOP','▶ 2ND','▶ 3RD'];
-  const icons  = ['🔴','🟡','🟢'];
   const top    = [...articles].sort((a,b) => (b.score||0)-(a.score||0)).slice(0,3);
   if (!top.length) { setEl(containerId,'<div class="error-row">NO HIGH-IMPACT NEWS</div>'); return; }
   setEl(containerId, top.map((a,i) => `
@@ -1282,7 +1281,6 @@ function renderMarketDriving(articles, containerId) {
         <div class="driving-headline">${a.title||a.headline||''}</div>
         <div class="driving-meta">${(a.source||'').toUpperCase()} · ${a.relTime||fmtRelTime(a.publishedAt||a.timestamp)} · IMPACT ${a.score||0}</div>
       </div>
-      <div class="driving-icon">${icons[i]}</div>
     </a>`).join(''));
 }
 
