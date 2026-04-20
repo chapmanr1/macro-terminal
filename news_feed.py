@@ -13,7 +13,7 @@ from email.utils import parsedate_to_datetime
 log = logging.getLogger(__name__)
 
 # ── CONFIG ────────────────────────────────────────────────────
-CACHE_TTL       = 900
+CACHE_TTL       = 120
 MAX_ARTICLES    = 20
 REQUEST_TIMEOUT = 10
 
@@ -83,6 +83,30 @@ RSS_FEEDS = [
     {
         "url":    "https://www.ft.com/rss/home",
         "source": "Financial Times",
+    },
+    {
+        "url":    "https://feeds.ap.org/rss/APFinance",
+        "source": "AP Finance",
+    },
+    {
+        "url":    "https://www.axios.com/feeds/feed.rss",
+        "source": "Axios",
+    },
+    {
+        "url":    "https://feeds.bloomberg.com/markets/news.rss",
+        "source": "Bloomberg",
+    },
+    {
+        "url":    "https://www.federalreserve.gov/feeds/press_all.xml",
+        "source": "Federal Reserve",
+    },
+    {
+        "url":    "https://www.bls.gov/feed/bls_latest.rss",
+        "source": "BLS",
+    },
+    {
+        "url":    "https://feeds.content.dowjones.io/public/rss/mw_realtimeheadlines",
+        "source": "MarketWatch RT",
     },
 ]
 

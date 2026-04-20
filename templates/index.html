@@ -519,7 +519,7 @@
     <div class="topbar-right">
       <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
       <span id="clock">--:--:--</span>
-      <span id="refreshLabel" style="color:var(--muted)">REFRESH 60s</span>
+      <span id="refreshLabel" style="color:var(--muted)">REFRESH 120s</span>
       <button class="settings-gear" id="settingsGear" title="Settings">⚙</button>
     </div>
   </div>
@@ -910,7 +910,7 @@
 // ════════════════════════════════════════════════════════════
 // CONFIG & STATE
 // ════════════════════════════════════════════════════════════
-let REFRESH_INTERVAL = 60;
+let REFRESH_INTERVAL = 120;
 let refreshTimer = REFRESH_INTERVAL;
 let countdownInterval = null;
 let autoRefreshInterval = null;
@@ -1861,13 +1861,13 @@ const S_KEY  = 'macroterm_sv2';
 
 const ST_DEF = {
   theme:'dark', fontSize:'normal', density:'normal',
-  refreshRate:60, numFormat:'abbreviated', decimals:2,
+  refreshRate:120, numFormat:'abbreviated', decimals:2,
   inflationThreshold:3.5, growthThreshold:2.0,
   bullProb:33, baseProb:34, bearProb:33,
   regimeLabels:{GOLDILOCKS:'STRONG GROWTH',STAGFLATION:'STAGFLATION',RECESSION:'RECESSION',REFLATION:'REFLATION',OVERHEATING:'OVERHEATING',DISINFLATION:'DISINFLATION'},
   thresholdPCE:3.5, thresholdGDP:2.5, thresholdHY:450, thresholdProductivity:2.0, thresholdBDC:5.0, alertSensitivity:'medium',
   journalEntries:[],
-  newsSources:{Reuters:true,WSJ:true,'Financial Times':true,CNBC:true,'CNBC Economy':true,MarketWatch:true},
+  newsSources:{Reuters:true,WSJ:true,'Financial Times':true,CNBC:true,'CNBC Economy':true,MarketWatch:true,'AP Finance':true,Axios:true,Bloomberg:true,'Federal Reserve':true,BLS:true,'MarketWatch RT':true},
   newsMinScore:6, newsMaxArticles:20, newsMaxAge:48, newsKeywords:'',
   watchlist:[], showBDC:true,
   defaultTab:'overview',
