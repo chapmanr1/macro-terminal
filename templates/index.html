@@ -86,10 +86,11 @@
     .regime-positioning { margin-top: 10px; }
     .regime-pos-title { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 6px; }
     .pos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-    .pos-item { font-size: 9px; padding: 4px 8px; border: 1px solid var(--border); letter-spacing: 0.05em; }
+    .pos-item { font-size: 9px; padding: 4px 8px; border: 1px solid var(--border); letter-spacing: 0.05em; text-decoration: none; display: block; transition: opacity 0.15s; }
     .pos-item.OW { border-color:var(--green-dim);color:var(--green);background:rgba(0,217,100,0.04) }
     .pos-item.UW { border-color:var(--red-dim);color:var(--red);background:rgba(239,68,68,0.04) }
     .pos-item.N { border-color:var(--border2);color:var(--muted) }
+    a.pos-item { cursor: pointer; } a.pos-item:hover { opacity: 0.7; }
 
     /* ── OVERVIEW: EQUITY INDICES STRIP ── */
     .ov-indices { display: flex; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
@@ -101,16 +102,29 @@
     .macro-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
     .macro-cell { background: var(--bg); padding: 10px 12px; transition: background 0.15s; }
     .macro-cell:hover { background: var(--bg3); }
-    .macro-cell-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 4px; }
+    .macro-cell-label { font-size: 8px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 4px; }
     .macro-cell-value { font-size: 20px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
     .macro-cell-sub { font-size: 9px; color: var(--muted); letter-spacing: 0.05em; }
     .macro-cell-change { font-size: 9px; margin-top: 3px; letter-spacing: 0.05em; }
+    .fred-link { font-size: 7px; color: var(--muted2); letter-spacing: 0.06em; text-decoration: none; cursor: pointer; transition: color 0.15s; }
+    .fred-link:hover { color: var(--amber); }
+    a.index-cell, a.futures-cell, a.commod-cell, a.currency-cell { display: block; text-decoration: none; color: inherit; cursor: pointer; }
+    a.index-cell:hover, a.futures-cell:hover, a.commod-cell:hover, a.currency-cell:hover { background: var(--bg3) !important; }
+    a.sector-cell { display: block; text-decoration: none; color: inherit; cursor: pointer; }
+    a.sector-cell:hover { filter: brightness(1.25); }
+    a.yc-spread-row { display: flex; text-decoration: none; color: inherit; cursor: pointer; }
+    a.yc-spread-row:hover .yc-spread-lbl { color: var(--white); }
+    a.news-source { text-decoration: none; color: var(--amber); cursor: pointer; transition: color 0.15s; font-size: 8px; letter-spacing: 0.08em; text-align: right; padding-top: 2px; display: block; }
+    a.news-source:hover { color: var(--white); }
+    .driving-source-link { text-decoration: none; color: inherit; cursor: pointer; transition: color 0.15s; }
+    .driving-source-link:hover { color: var(--white); }
+    .news-headline:hover, .driving-headline:hover { color: #fff; }
 
     /* ── OVERVIEW: YIELD CURVE CHART ── */
     .yc-wrap { padding: 12px 14px 0; border-bottom: 1px solid var(--border); }
     .yc-chart { width: 100%; }
     .yc-chart svg { display: block; overflow: visible; }
-    .yc-dot { cursor: crosshair; transition: r 0.15s; }
+    .yc-dot { cursor: pointer; transition: r 0.15s; }
     .yc-dot:hover { r: 5; }
     .yc-spreads { display: flex; gap: 0; border-top: 1px solid var(--border); margin-top: 10px; }
     .yc-spread-row { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-right: 1px solid var(--border); }
@@ -1039,6 +1053,65 @@ function fetchTab(tabId) {
 }
 
 // ════════════════════════════════════════════════════════════
+// LOOKUP MAPS — data source links
+// ════════════════════════════════════════════════════════════
+const FRED_URLS = {
+  gdp:'https://fred.stlouisfed.org/series/GDPC1',cpi:'https://fred.stlouisfed.org/series/CPIAUCSL',
+  pce:'https://fred.stlouisfed.org/series/PCEPILFE',unemployment:'https://fred.stlouisfed.org/series/UNRATE',
+  fed_funds:'https://fred.stlouisfed.org/series/FEDFUNDS',m2:'https://fred.stlouisfed.org/series/M2SL',
+  hy_oas:'https://fred.stlouisfed.org/series/BAMLH0A0HYM2',ig_oas:'https://fred.stlouisfed.org/series/BAMLC0A0CM',
+  t5yie:'https://fred.stlouisfed.org/series/T5YIE',t10yie:'https://fred.stlouisfed.org/series/T10YIE',
+  icsa:'https://fred.stlouisfed.org/series/ICSA',retail:'https://fred.stlouisfed.org/series/RSXFS',
+  savings:'https://fred.stlouisfed.org/series/PSAVERT',cc_delinq:'https://fred.stlouisfed.org/series/DRCCLACBS',
+  umich:'https://fred.stlouisfed.org/series/UMCSENT',houst:'https://fred.stlouisfed.org/series/HOUST',
+  mortgage:'https://fred.stlouisfed.org/series/MORTGAGE30US',dfii5:'https://fred.stlouisfed.org/series/DFII5',
+  dfii10:'https://fred.stlouisfed.org/series/DFII10',
+};
+const YIELD_FRED_URLS = {
+  dgs1mo:'https://fred.stlouisfed.org/series/DGS1MO',dgs3mo:'https://fred.stlouisfed.org/series/DGS3MO',
+  dgs6mo:'https://fred.stlouisfed.org/series/DGS6MO',dgs1:'https://fred.stlouisfed.org/series/DGS1',
+  dgs2:'https://fred.stlouisfed.org/series/DGS2',dgs5:'https://fred.stlouisfed.org/series/DGS5',
+  dgs10:'https://fred.stlouisfed.org/series/DGS10',dgs30:'https://fred.stlouisfed.org/series/DGS30',
+};
+const SPREAD_FRED_URLS = {
+  '10Y-2Y':'https://fred.stlouisfed.org/series/T10Y2Y',
+  '10Y-3MO':'https://fred.stlouisfed.org/series/T10Y3M',
+};
+const YAHOO_URLS = {
+  '^GSPC':'https://finance.yahoo.com/quote/%5EGSPC','^DJI':'https://finance.yahoo.com/quote/%5EDJI',
+  '^IXIC':'https://finance.yahoo.com/quote/%5EIXIC','^RUT':'https://finance.yahoo.com/quote/%5ERUT',
+  '^VIX':'https://finance.yahoo.com/quote/%5EVIX','ES=F':'https://finance.yahoo.com/quote/ES%3DF',
+  'NQ=F':'https://finance.yahoo.com/quote/NQ%3DF','YM=F':'https://finance.yahoo.com/quote/YM%3DF',
+  'CL=F':'https://finance.yahoo.com/quote/CL%3DF','GC=F':'https://finance.yahoo.com/quote/GC%3DF',
+  'SI=F':'https://finance.yahoo.com/quote/SI%3DF','HG=F':'https://finance.yahoo.com/quote/HG%3DF',
+  'NG=F':'https://finance.yahoo.com/quote/NG%3DF','DX-Y.NYB':'https://finance.yahoo.com/quote/DX-Y.NYB',
+  'EURUSD=X':'https://finance.yahoo.com/quote/EURUSD%3DX',
+};
+const ETF_URLS = {
+  'GOLD':'https://finance.yahoo.com/quote/GLD','TIPS':'https://finance.yahoo.com/quote/TIP',
+  'COMMODITIES':'https://finance.yahoo.com/quote/GSG','CASH':'https://finance.yahoo.com/quote/SHV',
+  'ENERGY':'https://finance.yahoo.com/quote/XLE','US EQUITIES':'https://finance.yahoo.com/quote/SPY',
+  'LONG TREASURIES':'https://finance.yahoo.com/quote/TLT','CORP CREDIT':'https://finance.yahoo.com/quote/LQD',
+  "INT'L EQUITIES":'https://finance.yahoo.com/quote/EFA','HIGH YIELD':'https://finance.yahoo.com/quote/HYG',
+  'SHORT BONDS':'https://finance.yahoo.com/quote/SHY','LONG BONDS':'https://finance.yahoo.com/quote/TLT',
+  'REAL ASSETS':'https://finance.yahoo.com/quote/PDBC','CYCLICALS':'https://finance.yahoo.com/quote/XLY',
+  'DEFENSIVES':'https://finance.yahoo.com/quote/XLP','EM EQUITIES':'https://finance.yahoo.com/quote/EEM',
+  'FINANCIALS':'https://finance.yahoo.com/quote/XLF','INDUSTRIALS':'https://finance.yahoo.com/quote/XLI',
+};
+const SOURCE_URLS = {
+  'Reuters':'https://www.reuters.com','WSJ':'https://www.wsj.com',
+  'Financial Times':'https://www.ft.com','CNBC':'https://www.cnbc.com',
+  'CNBC Economy':'https://www.cnbc.com/economy/','MarketWatch':'https://www.marketwatch.com',
+  'AP Finance':'https://apnews.com/business','Axios':'https://www.axios.com',
+  'Bloomberg':'https://www.bloomberg.com/markets','Federal Reserve':'https://www.federalreserve.gov/newsevents.htm',
+  'BLS':'https://www.bls.gov/news.release/','MarketWatch RT':'https://www.marketwatch.com',
+};
+function _srcLink(source) {
+  const u = SOURCE_URLS[source]; const s = (source||'').toUpperCase();
+  return u ? `<a class="driving-source-link" href="${u}" target="_blank" rel="noopener noreferrer">${s}</a>` : s;
+}
+
+// ════════════════════════════════════════════════════════════
 // RENDER: OVERVIEW
 // ════════════════════════════════════════════════════════════
 function renderRegime(data) {
@@ -1071,7 +1144,10 @@ function renderRegime(data) {
   const posItems = positioning.map(p => {
     const cls = p.stance==='OW' ? 'OW' : p.stance==='UW' ? 'UW' : 'N';
     const pre = p.stance==='OW' ? '▲ ' : p.stance==='UW' ? '▼ ' : '– ';
-    return `<div class="pos-item ${cls}">${pre}${p.asset_class||''}</div>`;
+    const etfUrl = ETF_URLS[p.asset_class] || '';
+    const tag = etfUrl ? `a` : `div`;
+    const attrs = etfUrl ? ` href="${etfUrl}" target="_blank" rel="noopener noreferrer"` : '';
+    return `<${tag} class="pos-item ${cls}"${attrs}>${pre}${p.asset_class||''}</${tag}>`;
   }).join('');
 
   const centerEl = document.getElementById('regimeCenter');
@@ -1101,8 +1177,10 @@ function renderMacro(data) {
     const chg = s.change ?? null;
     const pig = s.positive_is_good !== false;
     const cls = colorClass(chg, pig);
+    const fredUrl = FRED_URLS[s.id];
+    const fredTag = fredUrl ? `<a class="fred-link" href="${fredUrl}" target="_blank" rel="noopener noreferrer">FRED ↗</a>` : '';
     return `<div class="macro-cell">
-      <div class="macro-cell-label">${s.label||s.id||''}</div>
+      <div class="macro-cell-label"><span>${s.label||s.id||''}</span>${fredTag}</div>
       <div class="macro-cell-value ${cls}">${s.current != null ? fmt(s.current, s.decimals??2)+(s.suffix||'') : '--'}</div>
       <div class="macro-cell-sub">${s.description||''}</div>
       ${chg !== null ? `<div class="macro-cell-change ${cls}">${+chg>=0?'▲':'▼'} ${fmt(Math.abs(chg), s.decimals??2)}${s.suffix||''} vs PRIOR</div>` : ''}
@@ -1136,8 +1214,8 @@ function _buildYieldCurveSVG(yields, curveStatus) {
   const PL = 46, PR = 10, PT = 12, PB = 26;
   const CW = W - PL - PR, CH = H - PT - PB;
 
-  const cur  = yields.map((y, i) => ({ x: PL + i/(yields.length-1)*CW, y: null, v: y.value,  lbl: y.label }));
-  const prev = yields.map((y, i) => ({ x: PL + i/(yields.length-1)*CW, y: null, v: y.prior,  lbl: y.label }));
+  const cur  = yields.map((y, i) => ({ x: PL + i/(yields.length-1)*CW, y: null, v: y.value,  lbl: y.label, id: y.id }));
+  const prev = yields.map((y, i) => ({ x: PL + i/(yields.length-1)*CW, y: null, v: y.prior,  lbl: y.label, id: y.id }));
 
   const allVals = [...yields.map(y=>y.value), ...yields.map(y=>y.prior)].filter(v=>v!=null);
   if (!allVals.length) return '<div class="c-muted" style="font-size:10px;padding:20px 0">NO YIELD DATA</div>';
@@ -1192,9 +1270,10 @@ function _buildYieldCurveSVG(yields, curveStatus) {
   }
 
   // Dots
-  const dotsSVG = curPts.map(p =>
-    `<circle class="yc-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${lineColor}" stroke="#0d0d0d" stroke-width="1.5" data-lbl="${p.lbl}" data-val="${p.v.toFixed(2)}%"/>`
-  ).join('');
+  const dotsSVG = curPts.map(p => {
+    const fredUrl = YIELD_FRED_URLS[p.id] || '';
+    return `<circle class="yc-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${lineColor}" stroke="#0d0d0d" stroke-width="1.5" data-lbl="${p.lbl}" data-val="${p.v.toFixed(2)}%" data-url="${fredUrl}"/>`;
+  }).join('');
 
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -1218,10 +1297,13 @@ function renderYields(data) {
   const spreadHTML = spreads.map(sp => {
     const v   = sp.value;
     const cls = v == null ? 'c-muted' : v < 0 ? 'c-red' : v < 0.15 ? 'c-amber' : 'c-green';
-    return `<div class="yc-spread-row">
+    const spUrl = SPREAD_FRED_URLS[sp.label] || '';
+    const tag = spUrl ? `a` : `div`;
+    const attrs = spUrl ? ` href="${spUrl}" target="_blank" rel="noopener noreferrer"` : '';
+    return `<${tag} class="yc-spread-row"${attrs}>
       <span class="yc-spread-lbl">${sp.label||''}</span>
       <span class="yc-spread-val ${cls}">${v != null ? fmt(v,2)+'%' : '--'}</span>
-    </div>`;
+    </${tag}>`;
   }).join('');
 
   setEl('yieldsContent', `<div class="yc-wrap">
@@ -1229,7 +1311,7 @@ function renderYields(data) {
     <div class="yc-spreads">${spreadHTML || '<div class="c-muted" style="font-size:10px;padding:10px">NO SPREAD DATA</div>'}</div>
   </div>`);
 
-  // Attach hover tooltip to dots
+  // Attach hover tooltip + click to dots
   const tip = document.getElementById('ycTooltip');
   if (tip) {
     document.querySelectorAll('.yc-dot').forEach(dot => {
@@ -1242,6 +1324,7 @@ function renderYields(data) {
         tip.style.top  = (e.clientY - 28) + 'px';
       });
       dot.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
+      if (dot.dataset.url) dot.addEventListener('click', () => window.open(dot.dataset.url, '_blank', 'noopener,noreferrer'));
     });
   }
 }
@@ -1283,7 +1366,7 @@ function renderMarketDriving(articles, containerId) {
       <div class="driving-rank" style="color:${colors[i]}">${labels[i]}</div>
       <div>
         <div class="driving-headline">${a.title||a.headline||''}</div>
-        <div class="driving-meta">${(a.source||'').toUpperCase()} · ${a.relTime||fmtRelTime(a.publishedAt||a.timestamp)} · IMPACT ${a.score||0}</div>
+        <div class="driving-meta">${_srcLink(a.source)} · ${a.relTime||fmtRelTime(a.publishedAt||a.timestamp)} · IMPACT ${a.score||0}</div>
       </div>
     </a>`).join(''));
 }
@@ -1347,11 +1430,13 @@ function renderMarkets(data) {
   const futuresCells = futures.map(f => {
     const cls = colorClass(f.pct_change, true);
     const arrow = f.direction === 'UP' ? '▲' : f.direction === 'DOWN' ? '▼' : '→';
-    return `<div class="futures-cell">
+    const url = YAHOO_URLS[f.symbol] || '';
+    const tag = url ? `a` : `div`; const attrs = url ? ` href="${url}" target="_blank" rel="noopener noreferrer"` : '';
+    return `<${tag} class="futures-cell"${attrs}>
       <div class="futures-label">${f.label||''}</div>
       <div class="futures-price ${cls}">${f.price != null ? fmtN(f.price,2) : '--'}</div>
       <div class="futures-change ${cls}">${arrow} ${f.change != null ? fmt(Math.abs(f.change),2) : '--'} (${f.pct_change != null ? fmt(f.pct_change,2) : '--'}%)</div>
-    </div>`;
+    </${tag}>`;
   }).join('');
 
   const fsig = data.futures_signal || 'NEUTRAL';
@@ -1369,13 +1454,15 @@ function renderMarkets(data) {
     const dayCls = colorClass(idx.pct_change, true);
     const ytdCls = colorClass(idx.ytd_pct, true);
     const arrow = idx.direction === 'UP' ? '▲' : idx.direction === 'DOWN' ? '▼' : '→';
-    return `<div class="index-cell">
+    const url = YAHOO_URLS[idx.symbol] || '';
+    const tag = url ? `a` : `div`; const attrs = url ? ` href="${url}" target="_blank" rel="noopener noreferrer"` : '';
+    return `<${tag} class="index-cell"${attrs}>
       <div class="index-abbr">${idx.abbr||''}</div>
       <div class="index-label">${idx.label||''}</div>
       <div class="index-price ${dayCls}">${idx.price != null ? fmtN(idx.price,2) : '--'}</div>
       <div class="index-day ${dayCls}">${arrow} ${idx.change != null ? fmt(Math.abs(idx.change),2) : '--'} (${idx.pct_change != null ? fmt(idx.pct_change,2) : '--'}%)</div>
       <div class="index-ytd">YTD <span class="${ytdCls}">${idx.ytd_pct != null ? (idx.ytd_pct>=0?'+':'')+fmt(idx.ytd_pct,2)+'%' : '--'}</span></div>
-    </div>`;
+    </${tag}>`;
   }).join('');
   setEl('indicesContent', indexCells || '<div class="error-row">NO INDEX DATA</div>');
   document.getElementById('indicesContent').className = 'indices-grid';
@@ -1393,11 +1480,13 @@ function renderMarkets(data) {
     const fg  = sectorFgColor(pct);
     const bg  = sectorBg(pct);
     const pctStr = pct != null ? (pct>=0?'+':'')+fmt(pct,2)+'%' : '--';
-    return `<div class="sector-cell" style="background:${bg}">
+    const secUrl = s.symbol ? `https://finance.yahoo.com/quote/${s.symbol}` : '';
+    const stag = secUrl ? `a` : `div`; const sattrs = secUrl ? ` href="${secUrl}" target="_blank" rel="noopener noreferrer"` : '';
+    return `<${stag} class="sector-cell" style="background:${bg}"${sattrs}>
       <div class="sector-cell-label" style="color:${fg}">${s.short||s.label||''}</div>
       <div class="sector-cell-pct" style="color:${fg}">${pctStr}</div>
       <div class="sector-cell-ticker">${s.symbol||''}</div>
-    </div>`;
+    </${stag}>`;
   }).join('');
   setEl('sectorContent', sectorCells || '<div class="error-row">NO SECTOR DATA</div>');
   document.getElementById('sectorContent').className = 'sector-grid';
@@ -1410,7 +1499,7 @@ function renderMarkets(data) {
   const vixBadgeBorder = vix.color === 'green' ? 'var(--green)' : vix.color === 'red' ? 'var(--red)' : 'var(--amber)';
   const vixArrow = vix.direction === 'UP' ? '▲' : vix.direction === 'DOWN' ? '▼' : '→';
   setEl('vixContent', `
-    <div class="vix-wrap">
+    <a class="vix-wrap" href="${YAHOO_URLS['^VIX']}" target="_blank" rel="noopener noreferrer" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
       <div class="vix-header">
         <div class="vix-value ${vixCls}">${vixVal != null ? fmt(vixVal,2) : '--'}</div>
         <div class="vix-change ${vixCls}">${vix.change != null ? vixArrow+' '+fmt(Math.abs(vix.change),2) : ''}</div>
@@ -1425,7 +1514,7 @@ function renderMarkets(data) {
         <span style="color:var(--red)">35 PANIC</span><span style="color:var(--red-dim)">50 EXTREME</span>
       </div>
       <div class="vix-description">${vix.description||''}</div>
-    </div>`);
+    </a>`);
 
   // Commodities
   const commodities = data.commodities || [];
@@ -1433,12 +1522,14 @@ function renderMarkets(data) {
     const cls = colorClass(c.pct_change, true);
     const arrow = c.direction === 'UP' ? '▲' : c.direction === 'DOWN' ? '▼' : '→';
     const dec = c.decimals ?? 2;
-    return `<div class="commod-cell">
+    const url = YAHOO_URLS[c.symbol] || '';
+    const tag = url ? `a` : `div`; const attrs = url ? ` href="${url}" target="_blank" rel="noopener noreferrer"` : '';
+    return `<${tag} class="commod-cell"${attrs}>
       <div class="commod-label">${c.label||''}</div>
       <div class="commod-price ${cls}">${c.price != null ? fmt(c.price, dec) : '--'}</div>
       <div class="commod-change ${cls}">${arrow} ${c.pct_change != null ? fmt(c.pct_change,2)+'%' : '--'}</div>
       <div class="commod-suffix">${c.suffix||''}</div>
-    </div>`;
+    </${tag}>`;
   }).join('');
   setEl('commodContent', commodCells || '<div class="error-row">NO COMMODITY DATA</div>');
   document.getElementById('commodContent').className = 'commod-grid';
@@ -1455,12 +1546,14 @@ function renderMarkets(data) {
     const extraHTML = c.label === 'DXY'
       ? `<div class="currency-signal">${dSig ? '<strong>'+dSig+'</strong> — ' : ''}${dDetail}</div>`
       : `<div class="currency-signal">${c.description||''}</div>`;
-    return `<div class="currency-cell">
+    const curl = YAHOO_URLS[c.symbol] || '';
+    const ctag = curl ? `a` : `div`; const cattrs = curl ? ` href="${curl}" target="_blank" rel="noopener noreferrer"` : '';
+    return `<${ctag} class="currency-cell"${cattrs}>
       <div class="currency-label">${c.label||''}</div>
       <div class="currency-price ${cls}">${c.price != null ? fmt(c.price, dec) : '--'}</div>
       <div class="currency-change ${cls}">${arrow} ${c.change != null ? fmt(Math.abs(c.change),dec) : '--'} (${c.pct_change != null ? fmt(c.pct_change,2) : '--'}%)</div>
       ${extraHTML}
-    </div>`;
+    </${ctag}>`;
   }).join('');
   setEl('currencyContent', currCells || '<div class="error-row">NO FX DATA</div>');
   document.getElementById('currencyContent').className = 'currency-grid';
@@ -1806,7 +1899,7 @@ function renderNewsFeed(data) {
     <a class="news-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">
       <div class="news-time">${a.relTime||fmtRelTime(a.publishedAt||a.timestamp)}</div>
       <div class="news-headline">${a.title||a.headline||''}</div>
-      <div class="news-source">${(a.source||'').toUpperCase()}</div>
+      ${SOURCE_URLS[a.source] ? `<a class="news-source" href="${SOURCE_URLS[a.source]}" target="_blank" rel="noopener noreferrer">${(a.source||'').toUpperCase()}</a>` : `<div class="news-source">${(a.source||'').toUpperCase()}</div>`}
     </a>`).join('');
 
   setEl('newsContent', items);
