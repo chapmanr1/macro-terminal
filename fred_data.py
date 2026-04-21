@@ -709,7 +709,15 @@ def get_macro():
     if _cache_valid("macro"):
         log.info("Macro: returning cached data.")
         return _cache["macro"]["data"]
+    try:
+        return _fetch_macro()
+    except Exception as e:
+        log.error(f"Macro: unexpected failure — {e}")
+        if _cache["macro"]["data"] is not None:
+            return _cache["macro"]["data"]
+        return {"series": [], "timestamp": datetime.utcnow().isoformat(), "error": str(e)}
 
+def _fetch_macro():
     log.info("Macro: fetching fresh FRED data...")
     ts     = datetime.utcnow().isoformat()
     series = []
@@ -754,7 +762,15 @@ def get_yields():
     if _cache_valid("yields"):
         log.info("Yields: returning cached data.")
         return _cache["yields"]["data"]
+    try:
+        return _fetch_yields()
+    except Exception as e:
+        log.error(f"Yields: unexpected failure — {e}")
+        if _cache["yields"]["data"] is not None:
+            return _cache["yields"]["data"]
+        return {"yields": [], "spreads": [], "timestamp": datetime.utcnow().isoformat(), "error": str(e)}
 
+def _fetch_yields():
     log.info("Yields: fetching fresh FRED data...")
     ts     = datetime.utcnow().isoformat()
     yields = []
@@ -822,7 +838,16 @@ def get_economy():
     if _cache_valid("economy"):
         log.info("Economy: returning cached data.")
         return _cache["economy"]["data"]
+    try:
+        return _fetch_economy()
+    except Exception as e:
+        log.error(f"Economy: unexpected failure — {e}")
+        if _cache["economy"]["data"] is not None:
+            return _cache["economy"]["data"]
+        return {"growth": [], "inflation": [], "labor": [], "consumer": [],
+                "timestamp": datetime.utcnow().isoformat(), "error": str(e)}
 
+def _fetch_economy():
     log.info("Economy: fetching fresh FRED data...")
     ts = datetime.utcnow().isoformat()
 
@@ -938,7 +963,16 @@ def get_credit():
     if _cache_valid("credit"):
         log.info("Credit: returning cached data.")
         return _cache["credit"]["data"]
+    try:
+        return _fetch_credit()
+    except Exception as e:
+        log.error(f"Credit: unexpected failure — {e}")
+        if _cache["credit"]["data"] is not None:
+            return _cache["credit"]["data"]
+        return {"spreads": [], "breakevens": [], "real_yields": [], "falsification_triggers": [],
+                "timestamp": datetime.utcnow().isoformat(), "error": str(e)}
 
+def _fetch_credit():
     log.info("Credit: fetching fresh FRED data...")
     ts = datetime.utcnow().isoformat()
     errors = []

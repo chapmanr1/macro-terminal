@@ -2,11 +2,20 @@
 # Bloomberg Macro Terminal — Flask Entry Point
 
 import os
+import sys
+import signal
 import threading
 import time
 import logging
+import traceback
 from flask import Flask, jsonify, render_template, request
 from datetime import datetime
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+log = logging.getLogger(__name__)
 
 try:
     from regime_engine import get_regime
@@ -46,8 +55,6 @@ except ImportError:
                 "timestamp": datetime.utcnow().isoformat(), "error": "Market module not loaded"}
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
 
 # ── ROUTES ────────────────────────────────────────────────────
 @app.route("/")
@@ -63,7 +70,7 @@ def api_regime():
     try:
         return jsonify(get_regime())
     except Exception as e:
-        log.error(f"Regime error: {e}")
+        log.error(f"Regime error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "label": "ERROR", "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/macro")
@@ -71,7 +78,7 @@ def api_macro():
     try:
         return jsonify(get_macro())
     except Exception as e:
-        log.error(f"Macro error: {e}")
+        log.error(f"Macro error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "series": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/yields")
@@ -79,7 +86,7 @@ def api_yields():
     try:
         return jsonify(get_yields())
     except Exception as e:
-        log.error(f"Yields error: {e}")
+        log.error(f"Yields error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "yields": [], "spreads": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/news")
@@ -87,7 +94,7 @@ def api_news():
     try:
         return jsonify(get_news())
     except Exception as e:
-        log.error(f"News error: {e}")
+        log.error(f"News error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "articles": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/market")
@@ -95,7 +102,7 @@ def api_market():
     try:
         return jsonify(get_market())
     except Exception as e:
-        log.error(f"Market error: {e}")
+        log.error(f"Market error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "indices": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/economy")
@@ -103,7 +110,7 @@ def api_economy():
     try:
         return jsonify(get_economy())
     except Exception as e:
-        log.error(f"Economy error: {e}")
+        log.error(f"Economy error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "growth": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/credit")
@@ -111,7 +118,7 @@ def api_credit():
     try:
         return jsonify(get_credit())
     except Exception as e:
-        log.error(f"Credit error: {e}")
+        log.error(f"Credit error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "spreads": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/calendar")
@@ -119,7 +126,7 @@ def api_calendar():
     try:
         return jsonify({"events": get_economic_calendar(), "timestamp": datetime.utcnow().isoformat()})
     except Exception as e:
-        log.error(f"Calendar error: {e}")
+        log.error(f"Calendar error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "events": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/watchlist")
@@ -150,7 +157,7 @@ def api_watchlist():
                 items.append({"symbol": ticker, "error": str(e)[:60]})
         return jsonify({"items": items, "timestamp": datetime.utcnow().isoformat()})
     except Exception as e:
-        log.error(f"Watchlist error: {e}")
+        log.error(f"Watchlist error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "items": [], "timestamp": datetime.utcnow().isoformat()}), 500
 
 @app.route("/api/health")
@@ -182,9 +189,27 @@ def internal_keepalive():
             log.warning(f"Keep-alive failed: {e}")
         time.sleep(240)
 
+# ── INTERNAL HEALTH MONITOR ───────────────────────────────────
+def health_monitor():
+    while True:
+        try:
+            time.sleep(60)
+            log.info(f"Health check — app running, pid={os.getpid()}")
+        except Exception as e:
+            log.error(f"Health monitor error: {e}")
+
+# ── SIGNAL HANDLERS ───────────────────────────────────────────
+def _shutdown(signum, frame):
+    log.info(f"Received signal {signum} — shutting down gracefully.")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, _shutdown)
+signal.signal(signal.SIGINT,  _shutdown)
+
+# ── ENTRY POINT (dev only — production uses gunicorn) ─────────
 if __name__ == "__main__":
-    ka_thread = threading.Thread(target=internal_keepalive, daemon=True)
-    ka_thread.start()
+    threading.Thread(target=internal_keepalive, daemon=True).start()
+    threading.Thread(target=health_monitor,     daemon=True).start()
     port = int(os.environ.get("PORT", 5000))
     log.info(f"Starting Macro Terminal on port {port}")
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False, threaded=True)

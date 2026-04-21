@@ -24,7 +24,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
+args = "gunicorn --workers=2 --bind=0.0.0.0:5000 --timeout=120 --keep-alive=5 --max-requests=1000 --max-requests-jitter=100 --log-level=info main:app"
 waitForPort = 5000
 
 [workflows.workflow.metadata]

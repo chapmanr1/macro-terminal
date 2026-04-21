@@ -227,6 +227,18 @@ def get_market():
 
     log.info("Market: fetching fresh yfinance data...")
     ts = datetime.now(timezone.utc).isoformat()
+    try:
+        return _fetch_market_data()
+    except Exception as e:
+        log.error(f"Market: fetch failed — {e}")
+        if _cache["data"] is not None:
+            log.info("Market: returning stale cache after error.")
+            return _cache["data"]
+        return {"indices": [], "futures": [], "sectors": [], "commodities": [], "currencies": [],
+                "timestamp": ts, "error": str(e)}
+
+def _fetch_market_data():
+    ts = datetime.now(timezone.utc).isoformat()
 
     # ── INDICES ───────────────────────────────────────────────
     indices_out = []
