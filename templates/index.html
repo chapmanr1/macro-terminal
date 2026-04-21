@@ -19,13 +19,13 @@
       --font: 'Courier New', Courier, monospace;
     }
     html, body { background: var(--bg); color: var(--white); font-family: var(--font); font-size: 12px; line-height: 1.4; -webkit-font-smoothing: antialiased; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
-    .terminal { max-width: 1400px; margin: 0 auto; padding: 0 0 env(safe-area-inset-bottom, 60px); padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
+    .terminal { max-width: 1400px; margin: 0 auto; padding-top: 83px; padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }
 
-    /* ── STICKY HEADER WRAPPER ── */
-    .sticky-header { position: -webkit-sticky; position: sticky; top: 0; z-index: 100; background: #080808; padding-top: env(safe-area-inset-top, 0); }
+    /* ── FIXED HEADER WRAPPER (structural only — children are fixed) ── */
+    .sticky-header { display: none; }
 
     /* ── TOP BAR ── */
-    .topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 8px 14px; border-bottom: 1px solid var(--border); background: #080808; }
+    .topbar { position: fixed; top: 0; left: 0; right: 0; width: 100%; z-index: 1000; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 8px 14px; padding-top: calc(8px + env(safe-area-inset-top, 0px)); border-bottom: 1px solid var(--border); background: #080808; -webkit-transform: translateZ(0); transform: translateZ(0); }
     .topbar-left { display: flex; align-items: center; }
     .topbar-brand { font-size: 13px; font-weight: 700; color: var(--amber); letter-spacing: 0.2em; text-align: center; }
     .topbar-right { display: flex; align-items: center; justify-content: flex-end; gap: 14px; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
@@ -36,7 +36,7 @@
     #clock { color: var(--white); font-size: 10px; }
 
     /* ── TAB NAVIGATION ── */
-    .tab-nav { display: -webkit-flex; display: flex; background: #080808; border-top: 1px solid var(--border2); border-bottom: 2px solid var(--border2); padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tab-nav { position: fixed; top: 36px; left: 0; right: 0; width: 100%; z-index: 999; display: -webkit-flex; display: flex; background: #080808; border-top: 1px solid var(--border2); border-bottom: 2px solid var(--border2); padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; -webkit-transform: translateZ(0); transform: translateZ(0); }
     .tab-nav::-webkit-scrollbar { display: none; }
     .tab-btn { -webkit-flex: 1; flex: 1; padding: 12px 18px; font: 700 9px/1 var(--font); letter-spacing: 0.18em; color: var(--muted); background: none; border: none; border-right: 1px solid var(--border); border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; margin-bottom: -2px; transition: color 0.15s, background 0.15s; -webkit-tap-highlight-color: transparent; text-align: center; min-height: 44px; }
     .tab-btn:hover { color: var(--white); background: var(--bg3); }
@@ -374,7 +374,7 @@
     html[data-client="true"] .kshape-interp,html[data-client="true"] .currency-signal { display:none !important; }
 
     /* ── ALERT BANNER ── */
-    .alert-banner { display:none;position:-webkit-sticky;position:sticky;top:42px;z-index:95;background:rgba(245,158,11,0.12);border-bottom:2px solid var(--amber);padding:7px 14px;align-items:center;gap:10px; }
+    .alert-banner { display:none;position:fixed;top:83px;left:0;right:0;width:100%;z-index:95;background:rgba(245,158,11,0.12);border-bottom:2px solid var(--amber);padding:7px 14px;align-items:center;gap:10px; }
     .alert-banner.show { display:flex; }
     .alert-banner-text { flex:1;font-size:10px;color:var(--amber);letter-spacing:0.08em;font-weight:700; }
     .alert-banner-close { background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px;font-family:var(--font);line-height:1; }
@@ -497,33 +497,31 @@
   </style>
 </head>
 <body>
+<!-- FIXED TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left"></div>
+  <div class="topbar-brand">MACRO TERMINAL</div>
+  <div class="topbar-right">
+    <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
+    <span id="clock">--:--:--</span>
+    <span id="refreshLabel" style="color:var(--muted)">REFRESH 120s</span>
+    <button class="settings-gear" id="settingsGear" title="Settings">⚙</button>
+  </div>
+</div>
+<!-- FIXED TAB NAV -->
+<div class="tab-nav">
+  <button class="tab-btn active" data-tab="overview">OVERVIEW</button>
+  <button class="tab-btn" data-tab="markets">MARKETS</button>
+  <button class="tab-btn" data-tab="economy">ECONOMY</button>
+  <button class="tab-btn" data-tab="credit">CREDIT</button>
+  <button class="tab-btn" data-tab="news">NEWS</button>
+</div>
 <!-- ALERT BANNER -->
 <div id="alertBanner" class="alert-banner">
   <span id="alertBannerText" class="alert-banner-text"></span>
   <button id="alertBannerClose" class="alert-banner-close" title="Dismiss">✕</button>
 </div>
 <div class="terminal">
-
-  <!-- STICKY HEADER -->
-  <div class="sticky-header">
-    <div class="topbar">
-      <div class="topbar-left"></div>
-      <div class="topbar-brand">MACRO TERMINAL</div>
-      <div class="topbar-right">
-        <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
-        <span id="clock">--:--:--</span>
-        <span id="refreshLabel" style="color:var(--muted)">REFRESH 120s</span>
-        <button class="settings-gear" id="settingsGear" title="Settings">⚙</button>
-      </div>
-    </div>
-    <div class="tab-nav">
-      <button class="tab-btn active" data-tab="overview">OVERVIEW</button>
-      <button class="tab-btn" data-tab="markets">MARKETS</button>
-      <button class="tab-btn" data-tab="economy">ECONOMY</button>
-      <button class="tab-btn" data-tab="credit">CREDIT</button>
-      <button class="tab-btn" data-tab="news">NEWS</button>
-    </div>
-  </div>
 
   <!-- ══════════════════════════════════════════════════════ -->
   <!-- OVERVIEW TAB                                          -->
@@ -895,6 +893,28 @@
 </div>
 
 <script>
+// ════════════════════════════════════════════════════════════
+// FIXED HEADER LAYOUT — measure actual rendered heights and
+// position tab-nav + content padding precisely, including
+// iPhone notch (safe-area-inset-top is baked into topbar height
+// via CSS padding-top: calc(8px + env(safe-area-inset-top))).
+// ════════════════════════════════════════════════════════════
+function fixHeaderLayout() {
+  var topbar   = document.querySelector('.topbar');
+  var tabnav   = document.querySelector('.tab-nav');
+  var terminal = document.querySelector('.terminal');
+  var alertEl  = document.getElementById('alertBanner');
+  if (!topbar || !tabnav || !terminal) return;
+  var th = topbar.offsetHeight;
+  var nh = tabnav.offsetHeight;
+  tabnav.style.top        = th + 'px';
+  terminal.style.paddingTop = (th + nh) + 'px';
+  if (alertEl) alertEl.style.top = (th + nh) + 'px';
+}
+fixHeaderLayout();
+window.addEventListener('resize', fixHeaderLayout);
+window.addEventListener('orientationchange', function() { setTimeout(fixHeaderLayout, 150); });
+
 // ════════════════════════════════════════════════════════════
 // CONFIG & STATE
 // ════════════════════════════════════════════════════════════
