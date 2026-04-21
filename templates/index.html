@@ -483,6 +483,86 @@
     .sset-export-btn:last-child { margin-bottom:0; }
     .sset-export-btn:hover { border-color:var(--amber);color:var(--amber); }
 
+    /* ── RESEARCH PANEL ── */
+    .research-btn { background:none;border:none;cursor:pointer;color:var(--muted);font-size:15px;padding:2px 4px;-webkit-tap-highlight-color:transparent;transition:color 0.15s;line-height:1; }
+    .research-btn:hover, .research-btn.active { color:var(--blue); }
+    .research-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:299; }
+    .research-overlay.open { display:block; }
+    .research-panel { position:fixed;top:0;right:-380px;width:360px;height:100vh;height:-webkit-fill-available;background:#0d0d0d;border-left:1px solid var(--border2);z-index:300;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;transition:right 0.25s cubic-bezier(0.4,0,0.2,1);overflow:hidden; }
+    .research-panel.open { right:0; }
+    .research-hdr { display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:#080808;flex-shrink:0; }
+    .research-title-lbl { font-size:10px;font-weight:700;letter-spacing:0.2em;color:var(--blue); }
+    .research-close { background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px;-webkit-tap-highlight-color:transparent;line-height:1;font-family:var(--font); }
+    .research-close:hover { color:var(--white); }
+    .research-body { -webkit-flex:1;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain; }
+    .research-body::-webkit-scrollbar { width:4px; }
+    .research-body::-webkit-scrollbar-thumb { background:var(--border2); }
+    .research-sec-hdr { padding:6px 14px;background:var(--bg2);border-bottom:1px solid var(--border);border-top:1px solid var(--border); }
+    .research-sec-title { font-size:8px;font-weight:700;letter-spacing:0.18em;color:var(--muted); }
+    /* Search */
+    .research-search-wrap { padding:10px 14px;border-bottom:1px solid var(--border);background:#080808;position:relative;flex-shrink:0; }
+    .research-search-input { width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--white);font-family:var(--font);font-size:10px;padding:7px 10px;letter-spacing:0.08em;outline:none; }
+    .research-search-input:focus { border-color:var(--blue); }
+    .research-search-results { position:absolute;left:14px;right:14px;top:calc(100% - 1px);z-index:10;background:#0d0d0d;border:1px solid var(--blue);max-height:240px;overflow-y:auto; }
+    .research-result-item { padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;transition:background 0.1s;text-decoration:none;color:inherit; }
+    .research-result-item:last-child { border-bottom:none; }
+    .research-result-item:hover { background:var(--bg3); }
+    .research-result-sym { font-size:11px;font-weight:700;color:var(--amber);letter-spacing:0.1em;min-width:60px;flex-shrink:0; }
+    .research-result-name { font-size:9px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .research-result-type { font-size:7px;color:var(--muted2);letter-spacing:0.08em;flex-shrink:0; }
+    /* Watchlist */
+    .research-wl-add { display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid var(--border); }
+    .research-wl-input { flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--white);font-family:var(--font);font-size:9px;padding:5px 8px;letter-spacing:0.1em;text-transform:uppercase;outline:none; }
+    .research-wl-input:focus { border-color:var(--blue); }
+    .research-wl-add-btn { background:none;border:1px solid var(--border2);color:var(--muted);font-family:var(--font);font-size:9px;padding:5px 10px;cursor:pointer; }
+    .research-wl-add-btn:hover { border-color:var(--blue);color:var(--blue); }
+    .research-wl-row { display:grid;grid-template-columns:70px 1fr auto auto 20px;gap:6px;align-items:center;padding:6px 14px;border-bottom:1px solid var(--border); }
+    .research-wl-row:hover { background:var(--bg3); }
+    .research-wl-sym { font-size:10px;font-weight:700;color:var(--amber);letter-spacing:0.1em;cursor:pointer; }
+    .research-wl-price { font-size:11px;font-weight:700; }
+    .research-wl-pct { font-size:9px;text-align:right; }
+    .research-wl-analyze { font-size:8px;color:var(--blue);cursor:pointer;letter-spacing:0.08em;white-space:nowrap; }
+    .research-wl-del { background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;padding:0;font-family:var(--font);line-height:1; }
+    .research-wl-del:hover { color:var(--red); }
+    .research-wl-empty { padding:12px 14px;font-size:9px;color:var(--muted); }
+    /* Analysis */
+    .research-analysis { padding:12px 14px; }
+    .research-ticker-hdr { display:flex;align-items:baseline;gap:8px;margin-bottom:3px;flex-wrap:wrap; }
+    .research-ticker-sym { font-size:18px;font-weight:700;color:var(--amber);letter-spacing:0.1em;flex-shrink:0; }
+    .research-ticker-name { font-size:9px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .research-ticker-price { font-size:16px;font-weight:700;flex-shrink:0; }
+    .research-ticker-meta { font-size:8px;color:var(--muted);letter-spacing:0.04em;margin-bottom:10px; }
+    .research-scores { display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px; }
+    .research-score-box { background:var(--bg3);border:1px solid var(--border);padding:7px 8px;text-align:center; }
+    .research-score-lbl { font-size:7px;color:var(--muted);letter-spacing:0.1em;margin-bottom:3px; }
+    .research-score-val { font-size:16px;font-weight:700;line-height:1; }
+    .research-score-sub { font-size:7px;color:var(--muted);margin-top:2px; }
+    .research-verdict { display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.14em;padding:3px 10px;border:1px solid;margin-bottom:8px; }
+    .research-graham-num { font-size:9px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);line-height:1.5; }
+    .research-graham-num span { color:var(--white);font-weight:700; }
+    .research-regime-fit { background:var(--bg2);border:1px solid var(--border);padding:8px;margin-bottom:8px; }
+    .research-regime-fit-title { font-size:7px;color:var(--muted);letter-spacing:0.1em;margin-bottom:4px; }
+    .research-regime-fit-val { font-size:10px;font-weight:700;letter-spacing:0.08em; }
+    .research-regime-fit-desc { font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4; }
+    .research-metrics { display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px; }
+    .research-metric { background:var(--bg3);border:1px solid var(--border);padding:5px 8px; }
+    .research-metric-lbl { font-size:7px;color:var(--muted);letter-spacing:0.08em;margin-bottom:2px; }
+    .research-metric-val { font-size:11px;font-weight:700; }
+    .research-criteria-title { font-size:7px;color:var(--muted);letter-spacing:0.1em;margin-bottom:3px; }
+    .research-notes { font-size:9px;line-height:1.6;margin-bottom:6px; }
+    .research-note-pass { color:var(--green); }
+    .research-note-fail { color:var(--muted2); }
+    .research-news-list { border-top:1px solid var(--border);padding-top:8px;margin-top:6px; }
+    .research-news-title { font-size:7px;color:var(--muted);letter-spacing:0.1em;margin-bottom:5px; }
+    .research-news-item { padding:4px 0;border-bottom:1px solid var(--border); }
+    .research-news-item:last-child { border-bottom:none; }
+    .research-news-item a { text-decoration:none;color:var(--white);font-size:9px;line-height:1.4;display:block; }
+    .research-news-item a:hover { color:var(--amber); }
+    .research-news-time { font-size:8px;color:var(--muted);margin-top:1px; }
+    .research-loading { padding:20px 14px;text-align:center;font-size:9px;color:var(--muted);letter-spacing:0.1em; }
+    .research-error { padding:10px 14px;font-size:9px;color:var(--red); }
+    @media (max-width:640px) { .research-panel { width:100%;right:-100%; } }
+
     /* ── MOBILE ── */
     @media (max-width: 640px) {
       .ov-three-col { grid-template-columns: 1fr; }
@@ -519,6 +599,7 @@
     <span><span class="status-dot" id="statusDot"></span><span id="statusText">LIVE</span></span>
     <span id="clock">--:--:--</span>
     <span id="refreshLabel" style="color:var(--muted)">REFRESH 120s</span>
+    <button class="research-btn" id="researchBtn" title="Research">&#128269;</button>
     <button class="settings-gear" id="settingsGear" title="Settings">⚙</button>
   </div>
 </div>
@@ -893,6 +974,36 @@
   </div>
 </div>
 
+<!-- RESEARCH OVERLAY + PANEL -->
+<div class="research-overlay" id="researchOverlay"></div>
+<div class="research-panel" id="researchPanel">
+  <div class="research-hdr">
+    <div class="research-title-lbl">&#128269; RESEARCH</div>
+    <button class="research-close" id="researchClose">&#10005;</button>
+  </div>
+  <div class="research-body">
+
+    <!-- SEARCH -->
+    <div class="research-search-wrap" id="researchSearchWrap">
+      <input type="text" id="researchSearchInput" class="research-search-input" placeholder="TICKER OR COMPANY NAME..." autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+      <div id="researchSearchResults" class="research-search-results" style="display:none"></div>
+    </div>
+
+    <!-- WATCHLIST -->
+    <div class="research-sec-hdr"><div class="research-sec-title">WATCHLIST</div></div>
+    <div class="research-wl-add">
+      <input type="text" id="rwlAddInput" class="research-wl-input" placeholder="ADD TICKER" maxlength="10" autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <button id="rwlAddBtn" class="research-wl-add-btn">+ ADD</button>
+    </div>
+    <div id="researchWLList"></div>
+
+    <!-- ANALYSIS -->
+    <div class="research-sec-hdr" id="researchAnalysisSec" style="display:none"><div class="research-sec-title">QUICK ANALYSIS</div></div>
+    <div id="researchAnalysisCard" style="display:none"></div>
+
+  </div>
+</div>
+
 <!-- PIN MODAL -->
 <div id="pinModal" class="pin-modal">
   <div class="pin-box">
@@ -1115,6 +1226,7 @@ function _srcLink(source) {
 // RENDER: OVERVIEW
 // ════════════════════════════════════════════════════════════
 function renderRegime(data) {
+  _lastRegimeData = data;
   const label       = data.label || 'UNKNOWN';
   const confidence  = data.confidence_score ?? null;
   const indicators  = data.indicator_breakdown || [];
@@ -2613,6 +2725,320 @@ function _dl(name,content,mime){
   const a=document.createElement('a');a.href='data:'+mime+';charset=utf-8,'+encodeURIComponent(content);a.download=name;a.click();
 }
 function _td(){return new Date().toISOString().slice(0,10);}
+
+// ════════════════════════════════════════════════════════════
+// RESEARCH PANEL
+// ════════════════════════════════════════════════════════════
+const RWL_KEY = 'macroterm_research_wl';
+let _researchWL = [];
+let _lastRegimeData = null;
+let _rwlPriceInterval = null;
+let _searchDebounce = null;
+
+function _loadRWL() { try { _researchWL = JSON.parse(localStorage.getItem(RWL_KEY)) || []; } catch { _researchWL = []; } }
+function _saveRWL() { localStorage.setItem(RWL_KEY, JSON.stringify(_researchWL)); }
+
+function openResearch() {
+  _loadRWL();
+  document.getElementById('researchPanel').classList.add('open');
+  document.getElementById('researchOverlay').classList.add('open');
+  document.getElementById('researchBtn').classList.add('active');
+  renderResearchWL();
+  refreshResearchPrices();
+  if (!_rwlPriceInterval) _rwlPriceInterval = setInterval(refreshResearchPrices, 60000);
+}
+
+function closeResearch() {
+  document.getElementById('researchPanel').classList.remove('open');
+  document.getElementById('researchOverlay').classList.remove('open');
+  document.getElementById('researchBtn').classList.remove('active');
+  if (_rwlPriceInterval) { clearInterval(_rwlPriceInterval); _rwlPriceInterval = null; }
+  clearResearchSearch();
+}
+
+document.getElementById('researchBtn').addEventListener('click', () =>
+  document.getElementById('researchPanel').classList.contains('open') ? closeResearch() : openResearch());
+document.getElementById('researchOverlay').addEventListener('click', closeResearch);
+document.getElementById('researchClose').addEventListener('click', closeResearch);
+
+// ── Search ────────────────────────────────────────────────────
+const _srchInput = document.getElementById('researchSearchInput');
+const _srchResults = document.getElementById('researchSearchResults');
+
+_srchInput.addEventListener('input', () => {
+  clearTimeout(_searchDebounce);
+  const q = _srchInput.value.trim();
+  if (!q) { clearResearchSearch(); return; }
+  _searchDebounce = setTimeout(() => doResearchSearch(q), 300);
+});
+
+_srchInput.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { clearResearchSearch(); _srchInput.blur(); }
+  if (e.key === 'Enter') {
+    const q = _srchInput.value.trim().toUpperCase().replace(/[^A-Z0-9.^=\-]/g,'');
+    if (q) analyzeResearchTicker(q);
+  }
+});
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('researchSearchWrap')?.contains(e.target)) clearResearchSearch();
+});
+
+function clearResearchSearch() {
+  _srchResults.style.display = 'none';
+  _srchResults.innerHTML = '';
+}
+
+async function doResearchSearch(q) {
+  _srchResults.style.display = 'block';
+  _srchResults.innerHTML = '<div class="research-loading">SEARCHING...</div>';
+
+  const newsMatches = (_lastNewsRaw || [])
+    .filter(a => (a.title||'').toLowerCase().includes(q.toLowerCase()))
+    .slice(0, 3);
+
+  try {
+    const data = await apiFetch('/api/research/search?q=' + encodeURIComponent(q));
+    const results = data.results || [];
+    if (!results.length && !newsMatches.length) {
+      _srchResults.innerHTML = '<div class="research-loading">NO RESULTS</div>';
+      return;
+    }
+    let html = '';
+    results.forEach(r => {
+      const sym = r.symbol.replace(/'/g,'');
+      html += `<div class="research-result-item" onclick="analyzeResearchTicker('${sym}')">
+        <span class="research-result-sym">${r.symbol}</span>
+        <span class="research-result-name">${r.name||''}</span>
+        <span class="research-result-type">${(r.type||'').toUpperCase()}</span>
+      </div>`;
+    });
+    if (newsMatches.length) {
+      html += '<div style="padding:4px 10px;font-size:7px;color:var(--muted);letter-spacing:0.1em;background:var(--bg2);border-top:1px solid var(--border)">NEWS MATCHES</div>';
+      newsMatches.forEach(a => {
+        html += `<a class="research-result-item" href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">
+          <span class="research-result-sym" style="color:var(--blue);font-size:8px">${(a.source||'').toUpperCase()}</span>
+          <span class="research-result-name">${a.title||''}</span>
+        </a>`;
+      });
+    }
+    _srchResults.innerHTML = html;
+  } catch(e) {
+    _srchResults.innerHTML = '<div class="research-error">SEARCH UNAVAILABLE</div>';
+  }
+}
+
+// ── Watchlist ─────────────────────────────────────────────────
+function renderResearchWL() {
+  const el = document.getElementById('researchWLList');
+  if (!el) return;
+  if (!_researchWL.length) {
+    el.innerHTML = '<div class="research-wl-empty">No tickers added. Search above or type a symbol.</div>';
+    return;
+  }
+  el.innerHTML = _researchWL.map(t => {
+    const safe = t.replace(/'/g,'');
+    return `<div class="research-wl-row">
+      <span class="research-wl-sym" onclick="analyzeResearchTicker('${safe}')">${t}</span>
+      <span class="research-wl-price c-muted" id="rwlp-${t}">--</span>
+      <span class="research-wl-pct c-muted" id="rwlpct-${t}">--</span>
+      <span class="research-wl-analyze" onclick="analyzeResearchTicker('${safe}')">ANALYZE</span>
+      <button class="research-wl-del" onclick="removeResearchWL('${safe}')">&#10005;</button>
+    </div>`;
+  }).join('');
+}
+
+function addResearchWL(sym) {
+  sym = sym.trim().toUpperCase().replace(/[^A-Z0-9.^=\-]/g,'');
+  if (!sym) return;
+  if (!_researchWL.includes(sym)) _researchWL.push(sym);
+  _saveRWL();
+  renderResearchWL();
+  refreshResearchPrices();
+  clearResearchSearch();
+}
+
+function removeResearchWL(sym) {
+  _researchWL = _researchWL.filter(t => t !== sym);
+  _saveRWL();
+  renderResearchWL();
+}
+
+async function refreshResearchPrices() {
+  if (!_researchWL.length) return;
+  try {
+    const res = await fetch('/api/research/prices', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({tickers: _researchWL}), cache: 'no-store'
+    });
+    const data = await res.json();
+    (data.items || []).forEach(it => {
+      const pe = document.getElementById('rwlp-' + it.symbol);
+      const pc = document.getElementById('rwlpct-' + it.symbol);
+      if (!pe || !pc) return;
+      if (it.error || it.price == null) return;
+      const cls = it.direction === 'UP' ? 'c-green' : it.direction === 'DOWN' ? 'c-red' : 'c-muted';
+      const arrow = it.direction === 'UP' ? '▲' : it.direction === 'DOWN' ? '▼' : '→';
+      pe.className = 'research-wl-price ' + cls;
+      pe.textContent = fmtN(it.price, 2);
+      pc.className = 'research-wl-pct ' + cls;
+      pc.textContent = it.pct_change != null ? arrow + ' ' + Math.abs(it.pct_change).toFixed(2) + '%' : '--';
+    });
+  } catch(e) {}
+}
+
+const _rwlAdd = document.getElementById('rwlAddInput');
+const _rwlBtn = document.getElementById('rwlAddBtn');
+if (_rwlBtn && _rwlAdd) {
+  const doRWLAdd = () => { const v = _rwlAdd.value.trim(); if (v) { addResearchWL(v); _rwlAdd.value = ''; } };
+  _rwlBtn.addEventListener('click', doRWLAdd);
+  _rwlAdd.addEventListener('keydown', e => { if (e.key === 'Enter') doRWLAdd(); });
+}
+
+// ── Analysis ──────────────────────────────────────────────────
+async function analyzeResearchTicker(sym) {
+  clearResearchSearch();
+  const sec = document.getElementById('researchAnalysisSec');
+  const card = document.getElementById('researchAnalysisCard');
+  if (!card || !sec) return;
+  sec.style.display = '';
+  card.style.display = 'block';
+  card.innerHTML = '<div class="research-loading">ANALYZING ' + sym + '...</div>';
+  setTimeout(() => card.scrollIntoView({behavior:'smooth', block:'nearest'}), 80);
+  try {
+    const data = await apiFetch('/api/research/ticker/' + sym);
+    renderResearchAnalysis(data);
+  } catch(e) {
+    card.innerHTML = '<div class="research-error">ANALYSIS UNAVAILABLE — ' + e.message + '</div>';
+  }
+}
+
+function _fmtMktCap(v) {
+  if (!v) return '--';
+  if (v >= 1e12) return '$' + (v/1e12).toFixed(2) + 'T';
+  if (v >= 1e9)  return '$' + (v/1e9).toFixed(1) + 'B';
+  if (v >= 1e6)  return '$' + (v/1e6).toFixed(0) + 'M';
+  return '$' + v.toFixed(0);
+}
+
+function _regimeFit(d) {
+  if (!_lastRegimeData || !d) return null;
+  const regime = (_lastRegimeData.label || '').toUpperCase();
+  const sector = (d.sector || '').toUpperCase();
+  const fits = {
+    'STRONG GROWTH':  { good:['TECHNOLOGY','CONSUMER DISCRETIONARY','INDUSTRIALS','FINANCIALS'],     bad:['UTILITIES','CONSUMER STAPLES'] },
+    'GOLDILOCKS':     { good:['TECHNOLOGY','CONSUMER DISCRETIONARY','FINANCIALS','INDUSTRIALS'],     bad:['UTILITIES','CONSUMER STAPLES'] },
+    'STAGFLATION':    { good:['ENERGY','MATERIALS','HEALTH CARE','UTILITIES','CONSUMER STAPLES'],    bad:['TECHNOLOGY','CONSUMER DISCRETIONARY','REAL ESTATE'] },
+    'RECESSION':      { good:['CONSUMER STAPLES','HEALTH CARE','UTILITIES','COMMUNICATION SERVICES'],bad:['ENERGY','FINANCIALS','INDUSTRIALS','CONSUMER DISCRETIONARY'] },
+    'REFLATION':      { good:['ENERGY','MATERIALS','FINANCIALS','INDUSTRIALS'],                      bad:['UTILITIES','CONSUMER STAPLES'] },
+    'OVERHEATING':    { good:['ENERGY','MATERIALS','REAL ESTATE'],                                   bad:['TECHNOLOGY','CONSUMER DISCRETIONARY'] },
+    'DISINFLATION':   { good:['TECHNOLOGY','CONSUMER DISCRETIONARY','REAL ESTATE'],                  bad:['ENERGY','MATERIALS'] },
+  };
+  const fit = fits[regime];
+  if (!fit) return null;
+  const isGood = fit.good.some(s => sector.includes(s));
+  const isBad  = fit.bad.some(s => sector.includes(s));
+  const beta = d.beta;
+  const betaNote = beta != null ? ` Beta: ${beta.toFixed(2)}.` : '';
+  if (isGood) return { label:'REGIME FIT', desc:`${d.sector} tends to outperform in ${regime} environments.${betaNote}`, color:'green' };
+  if (isBad)  return { label:'REGIME HEADWIND', desc:`${d.sector} faces headwinds in ${regime} environments.${betaNote}`, color:'red' };
+  return { label:'NEUTRAL', desc:`No strong sector bias for ${d.sector} in ${regime}.${betaNote}`, color:'amber' };
+}
+
+function renderResearchAnalysis(d) {
+  const card = document.getElementById('researchAnalysisCard');
+  if (!card) return;
+  if (d.error) {
+    card.innerHTML = `<div class="research-analysis"><div class="research-error">${d.error}</div></div>`;
+    return;
+  }
+
+  const gSc = d.graham_score ?? 0;
+  const bSc = d.buffett_score ?? 0;
+  const vSc = d.value_score ?? 0;
+  const gColor = gSc >= 4 ? 'var(--green)' : gSc >= 2 ? 'var(--amber)' : 'var(--red)';
+  const bColor = bSc >= 4 ? 'var(--green)' : bSc >= 2 ? 'var(--amber)' : 'var(--red)';
+  const vColor = vSc >= 60 ? 'var(--green)' : vSc >= 40 ? 'var(--amber)' : 'var(--red)';
+  const verdictColor = d.verdict_color === 'green' ? 'var(--green)' : d.verdict_color === 'red' ? 'var(--red)' : 'var(--amber)';
+
+  let grahamHtml = '';
+  if (d.graham_number) {
+    const mgn = d.graham_margin_of_safety;
+    const mgnStr = mgn != null ? (mgn >= 0 ? '+' + mgn.toFixed(1) + '%' : mgn.toFixed(1) + '%') : '--';
+    const mgnCls = mgn != null && mgn > 0 ? 'c-green' : 'c-red';
+    grahamHtml = `<div class="research-graham-num">GRAHAM NUMBER: <span>$${d.graham_number.toFixed(2)}</span> &nbsp;·&nbsp; MARGIN OF SAFETY: <span class="${mgnCls}">${mgnStr}</span></div>`;
+  }
+
+  const fit = _regimeFit(d);
+  const fitColor = fit ? (fit.color === 'green' ? 'var(--green)' : fit.color === 'red' ? 'var(--red)' : 'var(--amber)') : 'var(--muted)';
+  const fitHtml = fit ? `<div class="research-regime-fit">
+    <div class="research-regime-fit-title">REGIME FIT &mdash; ${_lastRegimeData?.label||'UNKNOWN'}</div>
+    <div class="research-regime-fit-val" style="color:${fitColor}">${fit.label}</div>
+    <div class="research-regime-fit-desc">${fit.desc}</div>
+  </div>` : '';
+
+  const metrics = [
+    {l:'P/E',    v: d.pe != null ? d.pe.toFixed(1) : '--'},
+    {l:'FWD P/E',v: d.forward_pe != null ? d.forward_pe.toFixed(1) : '--'},
+    {l:'P/B',    v: d.pb != null ? d.pb.toFixed(2) : '--'},
+    {l:'P/S',    v: d.ps != null ? d.ps.toFixed(2) : '--'},
+    {l:'ROE',    v: d.roe != null ? (d.roe*100).toFixed(1)+'%' : '--'},
+    {l:'MARGIN', v: d.profit_margins != null ? (d.profit_margins*100).toFixed(1)+'%' : '--'},
+    {l:'D/E',    v: d.debt_equity != null ? (d.debt_equity/100).toFixed(2)+'x' : '--'},
+    {l:'BETA',   v: d.beta != null ? d.beta.toFixed(2) : '--'},
+  ];
+
+  const tickerNews = (_lastNewsRaw || []).filter(a => {
+    const t = (a.title||'').toLowerCase();
+    const sym = d.symbol.toLowerCase();
+    const name = (d.name||'').toLowerCase().split(' ')[0];
+    return t.includes(sym) || (name.length > 3 && t.includes(name));
+  }).slice(0, 3);
+
+  const inWL = _researchWL.includes(d.symbol);
+  const safeS = d.symbol.replace(/'/g,'');
+
+  card.innerHTML = `<div class="research-analysis">
+    <div class="research-ticker-hdr">
+      <span class="research-ticker-sym">${d.symbol}</span>
+      <span class="research-ticker-name">${d.name||''}</span>
+      <span class="research-ticker-price c-white">${d.price != null ? '$'+fmtN(d.price,2) : '--'}</span>
+      ${!inWL ? `<button onclick="addResearchWL('${safeS}')" style="background:none;border:1px solid var(--border2);color:var(--muted);font-family:var(--font);font-size:8px;padding:3px 8px;cursor:pointer;letter-spacing:0.1em;margin-left:4px" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">+ WL</button>` : ''}
+    </div>
+    <div class="research-ticker-meta">${d.sector||'--'} &middot; ${d.industry||'--'} &middot; ${_fmtMktCap(d.market_cap)}</div>
+
+    <div class="research-scores">
+      <div class="research-score-box"><div class="research-score-lbl">GRAHAM</div><div class="research-score-val" style="color:${gColor}">${gSc}/6</div></div>
+      <div class="research-score-box"><div class="research-score-lbl">BUFFETT</div><div class="research-score-val" style="color:${bColor}">${bSc}/6</div></div>
+      <div class="research-score-box"><div class="research-score-lbl">VALUE</div><div class="research-score-val" style="color:${vColor}">${vSc}</div><div class="research-score-sub">/100</div></div>
+    </div>
+
+    <div class="research-verdict" style="border-color:${verdictColor};color:${verdictColor}">${d.verdict||'--'}</div>
+
+    ${grahamHtml}
+    ${fitHtml}
+
+    <div class="research-metrics">${metrics.map(m=>`<div class="research-metric"><div class="research-metric-lbl">${m.l}</div><div class="research-metric-val">${m.v}</div></div>`).join('')}</div>
+
+    <div class="research-criteria-title">GRAHAM CRITERIA</div>
+    <div class="research-notes">${(d.graham_notes||[]).map(n=>`<div class="${n.includes('\u2713')?'research-note-pass':'research-note-fail'}">${n}</div>`).join('')||'<span class="research-note-fail">--</span>'}</div>
+
+    <div class="research-criteria-title">BUFFETT CRITERIA</div>
+    <div class="research-notes">${(d.buffett_notes||[]).map(n=>`<div class="${n.includes('\u2713')?'research-note-pass':'research-note-fail'}">${n}</div>`).join('')||'<span class="research-note-fail">--</span>'}</div>
+
+    ${d.analyst_target ? `<div style="font-size:9px;color:var(--muted);margin-top:6px">ANALYST TARGET <span style="color:var(--white);font-weight:700">$${d.analyst_target.toFixed(2)}</span>${d.recommendation?' &middot; '+d.recommendation:''}</div>` : ''}
+    ${d['52w_high'] && d['52w_low'] ? `<div style="font-size:9px;color:var(--muted);margin-top:4px">52W RANGE <span style="color:var(--white)">$${d['52w_low'].toFixed(2)} &ndash; $${d['52w_high'].toFixed(2)}</span></div>` : ''}
+
+    ${tickerNews.length ? `<div class="research-news-list">
+      <div class="research-news-title">RELATED NEWS</div>
+      ${tickerNews.map(a=>`<div class="research-news-item"><a href="${a.url||'#'}" target="_blank" rel="noopener noreferrer">${a.title||''}</a><div class="research-news-time">${fmtRelTime(a.publishedAt||a.timestamp)} &middot; ${(a.source||'').toUpperCase()}</div></div>`).join('')}
+    </div>` : ''}
+
+    <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:6px">
+      <a href="https://finance.yahoo.com/quote/${d.symbol}" target="_blank" rel="noopener noreferrer" style="color:var(--muted2);text-decoration:none;font-size:7px;letter-spacing:0.08em">VIEW ON YAHOO FINANCE &#8599;</a>
+    </div>
+  </div>`;
+}
 
 // ── Boot ──────────────────────────────────────────────────────
 applyAppSettings();

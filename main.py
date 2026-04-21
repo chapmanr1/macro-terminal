@@ -54,6 +54,13 @@ except ImportError:
         return {"indices": [], "futures": [], "sectors": [], "commodities": [], "currencies": [],
                 "timestamp": datetime.utcnow().isoformat(), "error": "Market module not loaded"}
 
+try:
+    from research import search_tickers, get_ticker_analysis, get_watchlist_prices as research_prices
+except ImportError:
+    def search_tickers(q): return []
+    def get_ticker_analysis(s): return {"symbol": s, "error": "Research module not loaded"}
+    def research_prices(t): return []
+
 app = Flask(__name__)
 
 # ── ROUTES ────────────────────────────────────────────────────
@@ -128,6 +135,35 @@ def api_calendar():
     except Exception as e:
         log.error(f"Calendar error: {e}\n{traceback.format_exc()}")
         return jsonify({"error": str(e), "events": [], "timestamp": datetime.utcnow().isoformat()}), 500
+
+@app.route("/api/research/search")
+def api_research_search():
+    try:
+        q = request.args.get('q', '').strip()
+        if not q:
+            return jsonify({"results": []})
+        return jsonify({"results": search_tickers(q)})
+    except Exception as e:
+        log.error(f"Research search error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "results": []}), 500
+
+@app.route("/api/research/ticker/<symbol>")
+def api_research_ticker(symbol):
+    try:
+        return jsonify(get_ticker_analysis(symbol))
+    except Exception as e:
+        log.error(f"Research ticker error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "symbol": symbol}), 500
+
+@app.route("/api/research/prices", methods=["POST"])
+def api_research_prices():
+    try:
+        data = request.get_json() or {}
+        tickers = data.get("tickers", [])
+        return jsonify({"items": research_prices(tickers)})
+    except Exception as e:
+        log.error(f"Research prices error: {e}\n{traceback.format_exc()}")
+        return jsonify({"error": str(e), "items": []}), 500
 
 @app.route("/api/watchlist")
 def api_watchlist():
